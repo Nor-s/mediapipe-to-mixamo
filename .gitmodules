@@ -1,3 +1,3 @@
 [submodule "mediapipe-pose-to-json"]
-	path = mediapipe-pose-to-json
+	path = mediapipe_pose_to_json
 	url = https://github.com/Nor-s/mediapipe-pose-to-json.git
