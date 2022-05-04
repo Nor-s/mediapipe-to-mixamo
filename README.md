@@ -18,11 +18,6 @@
 
 ![](/screenshot/mixamo_dance.gif_json_mm_.gif)
 
-![](/screenshot/mixamo_attack.gif.json_mm_.gif)
+![](/screenshot/mixamo_attack.gif_json_mm_.gif)
 
-![](/screenshot/mixamo_T_pose.gif.json_mm_.gif)
-
-
-## reference
-
-ikpy
+![](/screenshot/mixamo_T_pose.gif_json_mm_.gif)
