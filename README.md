@@ -21,3 +21,8 @@
 ![](/screenshot/mixamo_attack.gif.json_mm_.gif)
 
 ![](/screenshot/mixamo_T_pose.gif.json_mm_.gif)
+
+
+## reference
+
+ikpy
