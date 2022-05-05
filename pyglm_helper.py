@@ -59,7 +59,8 @@ def glm_list_to_gif(glm_lists, fps=24, save_path='.', is_axes_move=False):
         dots = get_dot(glm_lists[idx], idx_group)
 
         for dot in dots:
-            ax.plot(dot['x'], dot['y'], dot['z'], marker='o')
+            ax.scatter3D(dot['x'], dot['y'], dot['z'], marker='o')
+            ax.plot(dot['x'], dot['y'], dot['z'])
 
         if is_axes_move:
             set_axes(ax, idx)
