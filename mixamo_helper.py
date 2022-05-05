@@ -7,6 +7,37 @@ from IPython.display import clear_output
 import ntpath
 import glm
 import copy
+from enum import Enum, auto, IntEnum
+
+
+class Mixamo(IntEnum):
+    Hips = 0
+    Spine = auto()
+    Spine1 = auto()
+    Spine2 = auto()
+    Neck = auto()
+    Head = auto()
+    LeftArm = auto()
+    LeftForeArm = auto()
+    LeftHand = auto()
+    LeftHandThumb1 = auto()
+    LeftHandIndex1 = auto()
+    LeftHandPinky1 = auto()
+    RightArm = auto()
+    RightForeArm = auto()
+    RightHand = auto()
+    RightHandThumb1 = auto()
+    RightHandIndex1 = auto()
+    RightHandPinky1 = auto()
+    LeftLeg = auto()
+    LeftUpLeg = auto()
+    LeftFoot = auto()
+    LeftToeBase = auto()
+    RightLeg = auto()
+    RightUpLeg = auto()
+    RightFoot = auto()
+    RightToeBase = auto()
+
 
 mixamo_names = [
     ['Hips', 0, -1],  # left hip <->right hip
@@ -62,6 +93,7 @@ def get_frame_dot(json_object, fidx):
         dot1.append([-landmark['z'], landmark['x'], -landmark['y']])
     return dot1
 
+
 def get_mixamo_json_keypoints_with_color_and_mark_for_plot(json_object, fidx):
     dots = {
         'x': [],
@@ -80,13 +112,13 @@ def get_mixamo_json_keypoints_with_color_and_mark_for_plot(json_object, fidx):
         if idx == 5:
             dots['color'] = 'r'
         elif idx == 11:  # left Arm
-            dots['color']= 'g'
+            dots['color'] = 'g'
         elif idx == 17:  # right Arm
-            dots['color']= 'b'
+            dots['color'] = 'b'
         elif idx == 21:  # left leg
-            dots['color']= 'k'
-        elif idx == size -1:
-            dots['color']= 'm'
+            dots['color'] = 'k'
+        elif idx == size - 1:
+            dots['color'] = 'm'
         if dots['color'] != None:
             ret.append(dots)
             dots = {
@@ -120,12 +152,13 @@ def get_mixamo_json_keypoints_with_color_and_mark(json_object, fidx):
 
 
 def draw_mixamo(json_object, fidx, azim=10):
-    dot1 = get_mixamo_json_keypoints_with_color_and_mark_for_plot(json_object, fidx)
+    dot1 = get_mixamo_json_keypoints_with_color_and_mark_for_plot(
+        json_object, fidx)
     ax1 = plt.axes(projection='3d')
     set_axes(ax1, elev=10, azim=azim)
     for x in dot1:
         ax1.scatter(x['x'], x['y'], x['z'], c=x['color'], marker=x['mark'])
-        ax1.plot(x['x'], x['y'], x['z'], color= x['color'])
+        ax1.plot(x['x'], x['y'], x['z'], color=x['color'])
     plt.show()
 
 
@@ -134,7 +167,7 @@ def draw_list(json_object, fidx, draw_lists=[[0, 1, 2, 3, 4, 5]], azim=10, range
     ax1 = plt.axes(projection='3d')
     set_axes(ax1, elev=10, azim=azim, xrange=range, yrange=range, zrange=range)
     dots = []
-    for draw_list in draw_lists: 
+    for draw_list in draw_lists:
         dot_group = {
             'x': [],
             'y': [],
@@ -148,21 +181,23 @@ def draw_list(json_object, fidx, draw_lists=[[0, 1, 2, 3, 4, 5]], azim=10, range
 
     for dot in dots:
         ax1.plot(dot['x'], dot['y'], dot['z'], marker='o')
-        
+
     plt.show()
 
 
 def json_one_frame_to_360_gif(json_object, frame_idx, save_path='.'):
     fig = plt.figure()
     ax = plt.axes(projection='3d')
-    frame = get_mixamo_json_keypoints_with_color_and_mark_for_plot(json_object, frame_idx)
+    frame = get_mixamo_json_keypoints_with_color_and_mark_for_plot(
+        json_object, frame_idx)
 
     def update_round(i):
         set_axes(ax, i, 10)
     ax.clear()
     for plist in frame:
-        ax.scatter3D(plist['x'], plist['y'], plist['z'], c= plist['color'], marker= plist['mark'])
-        ax.plot(plist['x'], plist['y'], plist['z'], color= plist['color'])
+        ax.scatter3D(plist['x'], plist['y'], plist['z'],
+                     c=plist['color'], marker=plist['mark'])
+        ax.plot(plist['x'], plist['y'], plist['z'], color=plist['color'])
     ani = animation.FuncAnimation(
         fig, update_round, frames=360, interval=json_object["ticksPerSecond"])
     if save_path[-1] == '/':
@@ -178,10 +213,12 @@ def json_to_gif(json_object, save_path='.', max_frame_num=100, is_axes_move=Fals
 
     def update(idx):
         ax.clear()
-        frame = get_mixamo_json_keypoints_with_color_and_mark_for_plot(json_object, idx)
+        frame = get_mixamo_json_keypoints_with_color_and_mark_for_plot(
+            json_object, idx)
         for plist in frame:
-            ax.scatter3D(plist['x'], plist['y'], plist['z'], c= plist['color'], marker= plist['mark'])
-            ax.plot(plist['x'], plist['y'], plist['z'], color= plist['color'])
+            ax.scatter3D(plist['x'], plist['y'], plist['z'],
+                         c=plist['color'], marker=plist['mark'])
+            ax.plot(plist['x'], plist['y'], plist['z'], color=plist['color'])
         if is_axes_move:
             set_axes(ax, idx)
         else:
@@ -213,16 +250,18 @@ def get_mixamo_name_idx_map():
         mixamo_name_idx_map[name[0]] = name[1]
     return mixamo_name_idx_map
 
+
 def frame_json_to_glm_vec_list(json_object, frame_idx):
     glm_list = []
     visibility_list = []
     parent_list = []
-    frame_json = json_object['frames'][frame_idx]['keypoints3D'];
+    frame_json = json_object['frames'][frame_idx]['keypoints3D']
     for frame in frame_json:
         glm_list.append(glm.vec3(frame['x'], frame['y'], frame['z']))
         visibility_list.append(frame['score'])
         parent_list.append(frame['parent'])
     return [glm_list, visibility_list, parent_list]
+
 
 def get_idx_group():
     ret = []
@@ -232,6 +271,7 @@ def get_idx_group():
         if before_parent > name[2]:
             ret.append(copy.deepcopy(idx_stack))
             idx_stack.clear()
+            idx_stack.append(name[2])
         idx_stack.append(name[1])
         before_parent = name[2]
     ret.append(idx_stack)
