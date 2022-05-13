@@ -29,12 +29,12 @@ class Mixamo(IntEnum):
     RightHandThumb1 = auto()
     RightHandIndex1 = auto()
     RightHandPinky1 = auto()
-    LeftLeg = auto()
     LeftUpLeg = auto()
+    LeftLeg = auto()
     LeftFoot = auto()
     LeftToeBase = auto()
-    RightLeg = auto()
     RightUpLeg = auto()
+    RightLeg = auto()
     RightFoot = auto()
     RightToeBase = auto()
 
@@ -52,23 +52,23 @@ mixamo_names = [
     ['LeftForeArm', 7, 6, "left_elbow"],
     ['LeftHand', 8, 7, "left_wrist"],
     ['LeftHandThumb1', 9, 8, "left_thumb"],
-    ['LeftHandIndex1', 10, 9, "left_index"],
-    ['LeftHandPinky1', 11, 10, "left_pinky"],
+    ['LeftHandIndex1', 10, 8, "left_index"],
+    ['LeftHandPinky1', 11, 8, "left_pinky"],
 
     ['RightArm', 12, 3, "right_shoulder"],
     ['RightForeArm', 13, 12, "right_elbow"],
     ['RightHand', 14, 13, "right_wrist"],
     ['RightHandThumb1', 15, 14, "right_thumb"],
-    ['RightHandIndex1', 16, 15, "right_index"],
-    ['RightHandPinky1', 17, 16, "right_pinky"],
+    ['RightHandIndex1', 16, 14, "right_index"],
+    ['RightHandPinky1', 17, 14, "right_pinky"],
 
-    ['LeftLeg', 18, 0, "left_hip"],
-    ['LeftUpLeg', 19, 18, "left_knee"],
+    ['LeftUpLeg', 18, 0, "left_hip"],
+    ['LeftLeg', 19, 18, "left_knee"],
     ['LeftFoot', 20, 19, "left_ankle"],
     ['LeftToeBase', 21, 20, "left_foot_index"],
 
-    ['RightLeg', 22, 0, "right_hip"],
-    ['RightUpLeg', 23, 22, "right_knee"],
+    ['RightUpLeg', 22, 0, "right_hip"],
+    ['RightLeg', 23, 22, "right_knee"],
     ['RightFoot', 24, 23, "right_ankle"],
     ['RightToeBase', 25, 24, "right_foot_index"]
 ]
@@ -80,7 +80,7 @@ def set_axes(ax, azim=10, elev=10, xrange=1.0, yrange=1.0, zrange=1.0):
     ax.set_ylim(-yrange, yrange)
     ax.set_ylabel("X")
     ax.set_zlim(-zrange, zrange)
-    ax.set_zlabel("-Y")
+    ax.set_zlabel("Y")
     ax.set_title('Mixamo')
     ax.view_init(elev=elev, azim=azim)
 
@@ -90,7 +90,7 @@ def get_frame_dot(json_object, fidx):
     size = len(json_object['frames'][fidx]['keypoints3D'])
     for idx in range(0, size):
         landmark = json_object['frames'][fidx]["keypoints3D"][idx]
-        dot1.append([-landmark['z'], landmark['x'], -landmark['y']])
+        dot1.append([-landmark['z'], landmark['x'], landmark['y']])
     return dot1
 
 
@@ -108,7 +108,7 @@ def get_mixamo_json_keypoints_with_color_and_mark_for_plot(json_object, fidx):
         landmark = json_object['frames'][fidx]["keypoints3D"][idx]
         dots['x'].append(-landmark['z'])
         dots['y'].append(landmark['x'])
-        dots['z'].append(-landmark['y'])
+        dots['z'].append(landmark['y'])
         if idx == 5:
             dots['color'] = 'r'
         elif idx == 11:  # left Arm
@@ -136,7 +136,7 @@ def get_mixamo_json_keypoints_with_color_and_mark(json_object, fidx):
     size = len(json_object['frames'][fidx]['keypoints3D'])
     for idx in range(0, size):
         landmark = json_object['frames'][fidx]["keypoints3D"][idx]
-        dot1.append([-landmark['z'], landmark['x'], -landmark['y']])
+        dot1.append([-landmark['z'], landmark['x'], landmark['y']])
         if idx <= 5:
             dot1[idx].append('r')
         elif idx <= 11:  # left Arm
