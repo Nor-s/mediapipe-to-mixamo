@@ -8,14 +8,13 @@ import matplotlib.animation as animation
 from IPython.display import clear_output
 import ntpath
 import os
-from sympy import symbols, Eq, solve
 from mixamo_helper import get_idx_group, get_mixamo_name_idx_map, Mixamo, frame_json_to_glm_vec_list
 import copy
 import math
 
 
 def set_axes(ax, azim=10, elev=10, xrange=1.0, yrange=1.0, zrange=1.0):
-    ax.set_xlabel("-Z")
+    ax.set_xlabel("Z")
     ax.set_ylabel("X")
     ax.set_zlabel("Y")
     ax.set_title('Vector')
@@ -35,7 +34,7 @@ def get_dot(vec_list, group_lists):
             'z': []
         }
         for idx in group_list:
-            dot_group['x'].append(-vec_list[idx][2])
+            dot_group['x'].append(vec_list[idx][2])
             dot_group['y'].append(vec_list[idx][0])
             dot_group['z'].append(vec_list[idx][1])
         dots.append(dot_group)
@@ -144,7 +143,6 @@ class Gizmo:
     def calc_rotation_matrix(self, world_start, world_end):
         local_point1 = glm.normalize(self.get_local_pos(world_start))
         local_point2 = glm.normalize(self.get_local_pos(world_end))
-        # print(glm.cross(local_point1, local_point2))
         return glm.rotate(glm.mat4(1.0),
                           glm.acos(glm.dot(local_point1, local_point2)),
                           glm.cross(local_point1, local_point2))
@@ -164,17 +162,16 @@ class Gizmo:
         return self.r
 
     def get_local_pos(self, world_pos):
-        a, b, c = symbols("a,b,c")
-        equation_1 = Eq((self.r.x + a*self.x.x + b *
-                         self.y.x + c * self.z.x), world_pos.x)
-        equation_2 = Eq((self.r.y + a*self.x.y + b *
-                         self.y.y + c * self.z.y), world_pos.y)
-        equation_3 = Eq((self.r.z + a*self.x.z + b *
-                         self.y.z + c * self.z.z), world_pos.z)
-
-        solution = solve([equation_1, equation_2, equation_3],
-                         [a, b, c], dict=True)
-        return glm.vec3(solution[0][a], solution[0][b], solution[0][c])
+        b = world_pos - self.r
+        A = glm.mat3(self.x, self.y, self.z)
+        x = glm.inverse(A)*b
+        if math.isnan(x.x):
+            x.x = 0.0
+        if math.isnan(x.y):
+            x.y = 0.0
+        if math.isnan(x.z):
+            x.z = 0.0
+        return x
 
 
 def pixel3d_json_to_glm_vec(pixel3d_json):
@@ -193,6 +190,26 @@ def glm_quat_to_json(quat):
     return {"w": quat.w, "x": quat.x, "y": quat.y, "z": quat.z}
 
 
+def check_quat_isnan(quat):
+    if math.isnan(quat.x):
+        quat.x = 0.0
+    if math.isnan(quat.w):
+        quat.w = 1.0
+    if math.isnan(quat.y):
+        quat.y = 0.0
+    if math.isnan(quat.z):
+        quat.z = 0.0
+
+
+def check_vec3_isnan(vec, num=0.0):
+    if math.isnan(vec.x):
+        vec.x = num
+    if math.isnan(vec.y):
+        vec.y = num
+    if math.isnan(vec.z):
+        vec.z = num
+
+
 def decompose(matrix: glm.mat4):
     scale = glm.vec3()
     rotation = glm.quat()
@@ -200,6 +217,9 @@ def decompose(matrix: glm.mat4):
     skew = glm.vec3()
     perspective = glm.vec4()
     glm.decompose(matrix, scale, rotation, translation, skew, perspective)
+    check_quat_isnan(rotation)
+    check_vec3_isnan(scale, 1.0)
+    check_vec3_isnan(translation, 0.0)
     return [translation, rotation, scale]
 
 
@@ -275,11 +295,11 @@ class ModelNode:
             self.position.z = 0
 
         # find child
-        list = pix3d_node_json["child"]
-        transform_list = [None for i in range(len(list))]
+        childlist = pix3d_node_json["child"]
+        transform_list = [None for i in range(len(childlist))]
         transform_list_idx = -1
 
-        for child in list:
+        for child in childlist:
             transform_list_idx += 1
             if child['name'] in mixamo_idx_map:
                 new_node = ModelNode()
@@ -288,7 +308,7 @@ class ModelNode:
                 self.child.append(new_node)
             else:
                 for child_of_child in child["child"]:
-                    list.append(child_of_child)
+                    childlist.append(child_of_child)
                     position = pixel3d_json_to_glm_vec(child["position"])
                     rotation = pixel3d_json_to_glm_quat(child["rotation"])
                     scale = pixel3d_json_to_glm_vec(child["scale"])
@@ -375,13 +395,14 @@ class ModelNode:
 
     def tmp_to_json(self, bones_json):
         [t, r, s] = decompose(self.tmp_transform)
-        bone_json = {
-            "name": self.name,
-            "rotation": glm_quat_to_json(r),
-            "position": glm_vec3_to_json(t),
-            "scale": glm_vec3_to_json(s)
-        }
-        bones_json["bones"].append(bone_json)
+        if not (r.w == 1.0 and r.x == 0.0 and r.y == 0.0 and r.z == 0.0):
+            bone_json = {
+                "name": self.name,
+                "rotation": glm_quat_to_json(r),
+                "position": glm_vec3_to_json(t),
+                "scale": glm_vec3_to_json(s)
+            }
+            bones_json["bones"].append(bone_json)
         for child in self.child:
             child.tmp_to_json(bones_json)
 
@@ -399,3 +420,17 @@ def get_anim_frame_json(anim_json_object,  fidx, hip_node, mixamo_name_idx_map):
     root_node.calc_animation(glm_list, mixamo_name_idx_map)
     root_node.tmp_to_json(bones_json)
     return bones_json
+
+
+def get_anim_frame_vec_list(anim_json_object,  fidx, hip_node, mixamo_name_idx_map):
+    glm_list, visibility_list, parent_list = frame_json_to_glm_vec_list(
+        anim_json_object, fidx)
+    root_node = ModelNode()
+    root_node.set_mixamo(hip_node, mixamo_name_idx_map)
+    root_node.normalize(glm_list, mixamo_name_idx_map)
+    root_node.calc_animation(glm_list, mixamo_name_idx_map)
+
+    rv = []
+    rg = []
+    root_node.get_vec_and_group_list(rv, rg, is_apply_tmp_transform=True)
+    return [rv, rg]
