@@ -76,7 +76,7 @@ mixamo_names = [
 
 def set_axes(ax, azim=10, elev=10, xrange=1.0, yrange=1.0, zrange=1.0):
     ax.set_xlim(-xrange, xrange)
-    ax.set_xlabel("-Z")
+    ax.set_xlabel("Z")
     ax.set_ylim(-yrange, yrange)
     ax.set_ylabel("X")
     ax.set_zlim(-zrange, zrange)
@@ -90,7 +90,7 @@ def get_frame_dot(json_object, fidx):
     size = len(json_object['frames'][fidx]['keypoints3D'])
     for idx in range(0, size):
         landmark = json_object['frames'][fidx]["keypoints3D"][idx]
-        dot1.append([-landmark['z'], landmark['x'], landmark['y']])
+        dot1.append([landmark['z'], landmark['x'], landmark['y']])
     return dot1
 
 
@@ -106,7 +106,7 @@ def get_mixamo_json_keypoints_with_color_and_mark_for_plot(json_object, fidx):
     size = len(json_object['frames'][fidx]['keypoints3D'])
     for idx in range(0, size):
         landmark = json_object['frames'][fidx]["keypoints3D"][idx]
-        dots['x'].append(-landmark['z'])
+        dots['x'].append(landmark['z'])
         dots['y'].append(landmark['x'])
         dots['z'].append(landmark['y'])
         if idx == 5:
@@ -136,7 +136,7 @@ def get_mixamo_json_keypoints_with_color_and_mark(json_object, fidx):
     size = len(json_object['frames'][fidx]['keypoints3D'])
     for idx in range(0, size):
         landmark = json_object['frames'][fidx]["keypoints3D"][idx]
-        dot1.append([-landmark['z'], landmark['x'], landmark['y']])
+        dot1.append([landmark['z'], landmark['x'], landmark['y']])
         if idx <= 5:
             dot1[idx].append('r')
         elif idx <= 11:  # left Arm
