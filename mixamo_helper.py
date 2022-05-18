@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
-import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-import json
 import matplotlib.animation as animation
 from IPython.display import clear_output
 import ntpath
@@ -276,3 +274,152 @@ def get_idx_group():
         before_parent = name[2]
     ret.append(idx_stack)
     return ret
+
+
+# Mediapipe To Mixamo
+def avg3D(point1, point2):
+    return [float(point1[0] + point2[0])/2.0,
+            float(point1[1] + point2[1])/2.0,
+            float(point1[2] + point2[2])/2.0,
+            float(point1[3] + point2[3])/2.0]
+
+
+def avgMixamoData(mediapipe_name_idx_map, mediapipeJsonObject, frameNum, name1, name2):
+    left = mediapipeJsonObject[frameNum]["keypoints3D"][mediapipe_name_idx_map[name1]]
+    right = mediapipeJsonObject[frameNum]["keypoints3D"][mediapipe_name_idx_map[name2]]
+    x = float(left['x'] + right['x']) / 2.0
+    y = float(left['y'] + right['y']) / 2.0
+    z = float(left['z'] + right['z']) / 2.0
+    score = (left['score'] + right['score']) / 2.0
+    return [x, y, z, score]
+
+
+def mediapipeToMixamoHip(mediapipe_name_idx_map, resultKeyPointsJsonObject, mediapipeJsonObject, frameNum):
+    # left hip <->right hip
+    x, y, z, score = avgMixamoData(mediapipe_name_idx_map,
+                                   mediapipeJsonObject, frameNum, "left_hip", "right_hip")
+    resultKeyPointsJsonObject["keypoints3D"].append({'x': 0.0,
+                                                     'y': 0.0,
+                                                     'z': 0.0,
+                                                     'score': score,
+                                                     'name': mixamo_names[0][0],
+                                                     'parent': mixamo_names[0][2]})
+    lefthip2d = mediapipeJsonObject[frameNum]["keypoints"][mediapipe_name_idx_map["left_hip"]]
+    righthip2d = mediapipeJsonObject[frameNum]["keypoints"][mediapipe_name_idx_map["right_hip"]]
+    resultKeyPointsJsonObject["keypoints"].append({'x': (lefthip2d['x'] + righthip2d['x']) / 2.0,
+                                                   'y': -(lefthip2d['y'] + righthip2d['y']) / 2.0,
+                                                   'z': -(lefthip2d['z'] + righthip2d['z']) / 2.0,
+                                                   'score': (lefthip2d['score'] + righthip2d['score']) / 2.0,
+                                                   'name': mixamo_names[0][0],
+                                                   'parent': mixamo_names[0][2]})
+    return
+
+
+def mediapipeToMixamoSpine(mediapipe_name_idx_map, resultKeyPointsJsonObject, mediapipeJsonObject, frameNum):
+    # left_hip, right_hip, left_shoulder, right_shoulder
+    hip = avgMixamoData(mediapipe_name_idx_map,
+                        mediapipeJsonObject, frameNum, "left_hip", "right_hip")
+    neck = avgMixamoData(mediapipe_name_idx_map, mediapipeJsonObject, frameNum,
+                         "left_shoulder", "right_shoulder")
+    spine2 = avg3D(hip, neck)
+    spine1 = avg3D(hip, spine2)
+    spine3 = avg3D(spine2, neck)
+    spine = [spine1, spine2, spine3]
+    for idx in range(0, len(spine)):
+        resultKeyPointsJsonObject["keypoints3D"].append({'x': spine[idx][0],
+                                                         'y': -spine[idx][1],
+                                                         'z': -spine[idx][2],
+                                                         'score': spine[idx][3],
+                                                         'name': mixamo_names[idx+1][0],
+                                                         'parent': mixamo_names[idx+1][2]})
+
+
+def mediapipeToMixamoNeck(mediapipe_name_idx_map, resultKeyPointsJsonObject, mediapipeJsonObject, frameNum):
+    # left_shoulder <-> right_shoulder
+    x, y, z, score = avgMixamoData(
+        mediapipe_name_idx_map,
+        mediapipeJsonObject, frameNum, "left_shoulder", "right_shoulder")
+    resultKeyPointsJsonObject["keypoints3D"].append({'x': x,
+                                                     'y': -y,
+                                                     'z': -z,
+                                                     'score': score,
+                                                     'name': mixamo_names[4][0],
+                                                     'parent': mixamo_names[4][2]})
+    return
+
+
+def mediapipeToMixamoHead(mediapipe_name_idx_map, resultKeyPointsJsonObject, mediapipeJsonObject, frameNum):
+    # left_shoulder <-> right_shoulder
+    x, y, z, score = avgMixamoData(
+        mediapipe_name_idx_map,
+        mediapipeJsonObject, frameNum, "left_ear", "right_ear")
+    resultKeyPointsJsonObject["keypoints3D"].append({'x': x,
+                                                     'y': -y,
+                                                     'z': -z,
+                                                     'score': score,
+                                                     'name': mixamo_names[5][0],
+                                                     'parent': mixamo_names[5][2]})
+    return
+
+
+def mediapipeToMixamoAll(mediapipe_name_idx_map, mixamo_name_mediapipe_name_map, resultKeyPointsJsonObject, mediapipeJsonObject, frameNum):
+    frameKeypoints = mediapipeJsonObject[frameNum]["keypoints3D"]
+    for idx in range(6, len(mixamo_names)):
+        mediapipeName = mixamo_name_mediapipe_name_map[mixamo_names[idx][0]]
+        mediapipeIdx = mediapipe_name_idx_map[mediapipeName]
+        keypoint = frameKeypoints[mediapipeIdx]
+        resultKeyPointsJsonObject["keypoints3D"].append({'x': keypoint['x'],
+                                                         'y': -keypoint['y'],
+                                                         'z': -keypoint['z'],
+                                                         'score': keypoint['score'],
+                                                         'name': mixamo_names[idx][0],
+                                                         'parent': mixamo_names[idx][2]})
+    return
+
+
+def mediapipeToMixamo(mediapipe_name_idx_map, mediapipeJsonObject):
+    mm_name_mp_name_map = get_mixamo_name_mediapipe_name_map()
+    jsonObject = {
+        "fileName": mediapipeJsonObject['fileName'],
+        "duration": mediapipeJsonObject['duration'],
+        "ticksPerSecond": mediapipeJsonObject['ticksPerSecond'],
+        "frames": []
+    }
+    for fidx in range(0, len(mediapipeJsonObject['frames'])):
+        if len(mediapipeJsonObject['frames'][fidx]['keypoints3D']) == 0:
+            continue
+
+        mediapipeJsonObject['frames'][fidx]['keypoints3D'][mediapipe_name_idx_map['left_heel']]['x'],
+        keypointsJsonObject = {
+            "frameNum":  fidx,
+            "keypoints3D": [],
+            "keypoints": [],
+            "heel3D": [
+                {
+                    "name": "LeftHeel",
+                    "x": mediapipeJsonObject['frames'][fidx]['keypoints3D'][mediapipe_name_idx_map['left_heel']]['x'],
+                    "y": -mediapipeJsonObject['frames'][fidx]['keypoints3D'][mediapipe_name_idx_map['left_heel']]['y'],
+                    "z": -mediapipeJsonObject['frames'][fidx]['keypoints3D'][mediapipe_name_idx_map['left_heel']]['z'],
+                    "score":mediapipeJsonObject['frames'][fidx]['keypoints3D'][mediapipe_name_idx_map['left_heel']]['score']
+                },
+                {
+                    "name": "RightHeel",
+                    "x": mediapipeJsonObject['frames'][fidx]['keypoints3D'][mediapipe_name_idx_map['right_heel']]['x'],
+                    "y": -mediapipeJsonObject['frames'][fidx]['keypoints3D'][mediapipe_name_idx_map['right_heel']]['y'],
+                    "z": -mediapipeJsonObject['frames'][fidx]['keypoints3D'][mediapipe_name_idx_map['right_heel']]['z'],
+                    "score":mediapipeJsonObject['frames'][fidx]['keypoints3D'][mediapipe_name_idx_map['right_heel']]['score']
+                },
+            ]
+        }
+        mediapipeToMixamoHip(mediapipe_name_idx_map, keypointsJsonObject,
+                             mediapipeJsonObject['frames'], fidx)
+        mediapipeToMixamoSpine(mediapipe_name_idx_map, keypointsJsonObject,
+                               mediapipeJsonObject['frames'], fidx)
+        mediapipeToMixamoNeck(mediapipe_name_idx_map, keypointsJsonObject,
+                              mediapipeJsonObject['frames'], fidx)
+        mediapipeToMixamoHead(mediapipe_name_idx_map, keypointsJsonObject,
+                              mediapipeJsonObject['frames'], fidx)
+        mediapipeToMixamoAll(mediapipe_name_idx_map, mm_name_mp_name_map, keypointsJsonObject,
+                             mediapipeJsonObject['frames'], fidx)
+        jsonObject["frames"].append(keypointsJsonObject)
+    return jsonObject

@@ -1,16 +1,13 @@
-from tokenize import group
 import glm
 import matplotlib.pyplot as plt
-import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
-import json
 import matplotlib.animation as animation
-from IPython.display import clear_output
-import ntpath
 import os
 from mixamo_helper import get_idx_group, get_mixamo_name_idx_map, Mixamo, frame_json_to_glm_vec_list
 import copy
 import math
+from multiprocessing import Pool
+import ntpath
+import json
 
 
 def set_axes(ax, azim=10, elev=10, xrange=1.0, yrange=1.0, zrange=1.0):
@@ -434,3 +431,107 @@ def get_anim_frame_vec_list(anim_json_object,  fidx, hip_node, mixamo_name_idx_m
     rg = []
     root_node.get_vec_and_group_list(rv, rg, is_apply_tmp_transform=True)
     return [rv, rg]
+
+
+def find_hips(pixel3d_json):
+    if pixel3d_json["name"] == 'Hips':
+        return [True, pixel3d_json]
+    else:
+        for child in pixel3d_json["child"]:
+            is_find, result = find_hips(child)
+            if is_find:
+                return [is_find, result]
+        return [False, None]
+
+
+def get_anim_json(anim_file_name, model_file_name):
+    anim_json_object = None
+    with open(anim_file_name) as f:
+        anim_json_object = json.load(f)
+    pix3d_json_object = None
+    with open(model_file_name) as f:
+        pix3d_json_object = json.load(f)
+    is_find, hip_node = find_hips(pix3d_json_object["node"])
+    if not is_find:
+        return None
+    mixamo_name_idx_map = get_mixamo_name_idx_map()
+
+    size = len(anim_json_object["frames"])
+    anim_file_json = {
+        "fileName": anim_json_object["fileName"],
+        "duration": anim_json_object["duration"],
+        "ticksPerSecond": anim_json_object["ticksPerSecond"],
+        "frames": [
+        ]
+    }
+    my_pool = Pool()
+    frame_json = [None for i in range(0, size)]
+    for fidx in range(0, size):
+        frame_json[fidx] = my_pool.apply_async(
+            get_anim_frame_json, (anim_json_object, fidx, hip_node, mixamo_name_idx_map))
+
+    my_pool.close()
+    my_pool.join()
+    for f in frame_json:
+        if f != None:
+            anim_file_json["frames"].append(f.get())
+    with open('./output/' + ntpath.basename(anim_file_name) + '_'+ntpath.basename(model_file_name) + '_final.json', 'w') as f:
+        json_string = json.dump(anim_file_json, f, indent=2)
+
+
+def get_anim_json2(mixamo_anim_json, model_json):
+    is_find, hip_node = find_hips(model_json["node"])
+    if not is_find:
+        return None
+    mixamo_name_idx_map = get_mixamo_name_idx_map()
+
+    size = len(mixamo_anim_json["frames"])
+    anim_file_json = {
+        "fileName": mixamo_anim_json["fileName"],
+        "duration": mixamo_anim_json["duration"],
+        "ticksPerSecond": mixamo_anim_json["ticksPerSecond"],
+        "frames": [
+        ]
+    }
+    my_pool = Pool()
+    frame_json = [None for i in range(0, size)]
+    for fidx in range(0, size):
+        frame_json[fidx] = my_pool.apply_async(
+            get_anim_frame_json, (mixamo_anim_json, fidx, hip_node, mixamo_name_idx_map))
+
+    my_pool.close()
+    my_pool.join()
+    for f in frame_json:
+        if f != None:
+            anim_file_json["frames"].append(f.get())
+    return anim_file_json
+
+
+def get_anim_gif(anim_file_name, model_file_name):
+    anim_json_object = None
+    with open(anim_file_name) as f:
+        anim_json_object = json.load(f)
+    pix3d_json_object = None
+    with open(model_file_name) as f:
+        pix3d_json_object = json.load(f)
+    is_find, hip_node = find_hips(pix3d_json_object["node"])
+    if not is_find:
+        return None
+    mixamo_name_idx_map = get_mixamo_name_idx_map()
+    size = len(anim_json_object["frames"])
+    my_pool = Pool()
+    frames = [None for i in range(0, size)]
+    for fidx in range(0, size):
+        frames[fidx] = my_pool.apply_async(
+            get_anim_frame_vec_list, (anim_json_object, fidx, hip_node, mixamo_name_idx_map))
+
+    my_pool.close()
+    my_pool.join()
+    vec_list = []
+    vec_group = None
+    for frame in frames:
+        rv, rg = frame.get()
+        vec_list.append(rv)
+        vec_group = rg
+    glm_lists_to_gif(
+        vec_list, vec_group, fps=anim_json_object["ticksPerSecond"], save_path='./', is_axes_move=True)
