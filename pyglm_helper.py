@@ -275,9 +275,6 @@ class ModelNode:
             new_node.set_pixel3d(child)
             self.child.append(new_node)
 
-    def init_model_node(self):
-        mixamo_idx_map = get_mixamo_name_idx_map()
-
     def set_mixamo(self, pix3d_node_json, mixamo_idx_map, before_transform=None):
         self.name = pix3d_node_json["name"]
         self.position = pixel3d_json_to_glm_vec(
@@ -311,6 +308,25 @@ class ModelNode:
                     scale = pixel3d_json_to_glm_vec(child["scale"])
                     transform = calc_transform(position, rotation, scale)
                     transform_list.append(transform)
+
+    def normalize_spine(self, parent_node = None, parent_transform  = glm.mat4(1.0)):
+        if Mixamo.Spine.name in self.name  or self.name == Mixamo.LeftArm.name or self.name == Mixamo.RightArm.name or self.name == Mixamo.Neck.name:
+            # current_gizmo = self.get_gizmo(parent_transform)
+            # current_world_pos = copy.deepcopy(current_gizmo.get_origin())
+            # current_world_pos.z = 0.0
+            # print(self.name, ' ', self.position)
+            # parent_gizmo = parent_node.get_gizmo(parent_node.tmp_transform)
+            # local_pos = parent_gizmo.get_local_pos(current_world_pos)
+            # self.position.x = local_pos.x
+            # self.position.y = local_pos.y
+            self.position.z = 0#local_pos.z
+            # print(self.name, ' ', self.position)
+            
+        # self.tmp_transform = copy.deepcopy(parent_transform)
+
+        for child in self.child:
+            child.normalize_spine(parent_node = self, parent_transform = self.tmp_transform*self.get_transform())
+
 
     def normalize(self, mixamo_list, mixamo_idx_map, len=0.0):
         if self.name == "Hips":
@@ -361,8 +377,12 @@ class ModelNode:
     def get_transform(self):
         return calc_transform(self.position, self.rotate, self.scale)
 
-    def get_gizmo(self, parent_transform=glm.mat4(1.0)):
-        return self.gizmo.rotate(parent_transform*self.get_transform())
+    def get_gizmo(self, parent_transform=glm.mat4(1.0), is_apply_transform = True):
+        if is_apply_transform: 
+            return self.gizmo.rotate(parent_transform*self.get_transform())
+        else:
+            return self.gizmo.rotate(parent_transform)
+
 
     def get_gizmo_apply_tmp(self, parent_transform=glm.mat4(1.0)):
         return self.gizmo.rotate(parent_transform*self.get_transform()*self.tmp_transform)
@@ -414,6 +434,7 @@ def get_anim_frame_json(anim_json_object,  fidx, hip_node, mixamo_name_idx_map):
     root_node = ModelNode()
     root_node.set_mixamo(hip_node, mixamo_name_idx_map)
     root_node.normalize(glm_list, mixamo_name_idx_map)
+    root_node.normalize_spine()
     root_node.calc_animation(glm_list, mixamo_name_idx_map)
     root_node.tmp_to_json(bones_json)
     return bones_json
