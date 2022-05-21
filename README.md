@@ -129,7 +129,7 @@ root_node1.normalize(glm_list, mm_helper.get_mixamo_name_idx_map())
 ### **Sample1: Figure skaters' Jump**
 
 
-|target|result|pixelate|
+|source|result|pixelate|
 |-|-|-|
 |![](https://s.yimg.com/ny/api/res/1.2/t2nfBoRzzCHE6kB2ov5_gQ--/YXBwaWQ9aGlnaGxhbmRlcjt3PTQyMDtoPTM3MDtjZj13ZWJw/https://s.yimg.com/os/en_us/News/theatlanticwire/A_GIF_Guide_to_Figure-a22d5f1ddb22eb9a97c4a98c54c960c4)|![](./screenshot/figure_skater_jump.gif)|![](./screenshot/figure_skater_jump_pixelate.gif)
 
@@ -145,7 +145,7 @@ root_node1.normalize(glm_list, mm_helper.get_mixamo_name_idx_map())
 
 - mixamo dance animation => mediapipe pose
 
-    |target| mediapipe result|
+    |source| mediapipe result|
     |-|-|
     |![](https://github.com/Nor-s/mediapipe-pose-to-json/blob/07559f63ac12d5117dac3e4c9ad19865f7cbe535/sample/mixamo_dance.gif?raw=true)| ![](/screenshot/mixamo_dance.gif_json_mm_.gif)|
 
