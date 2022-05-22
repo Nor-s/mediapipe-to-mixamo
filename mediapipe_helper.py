@@ -1,14 +1,11 @@
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
-from IPython.display import clear_output
 import ntpath
 import math
 import cv2
-from time import time
 import mediapipe as mp
 import matplotlib.pyplot as plt
-from IPython.display import clear_output
+# from IPython.display import clear_output
 import os
 from PIL import Image
 import ntpath
@@ -58,7 +55,6 @@ def draw_mediapipe(json_object, fidx, azim=10):
 
 def draw_all_frame_mediapipe_in_ipython(json_object, azim=10):
     for fidx in range(0, len(json_object['frames'])):
-        clear_output(wait=True)
         draw_mediapipe(json_object, fidx, azim)
 
 
@@ -172,7 +168,6 @@ def gif_to_mediapipe_json(fileName, maxFrameNum=100, modelComplexity=2, minDetec
 
 
 def detectPose(image, pose, jsonObject, frameNum):
-    # clear_output(wait=True)  # for clear console output
     # for json_object['frames']
     frameJsonObject = {
         "frameNum": frameNum,
@@ -294,7 +289,7 @@ def detectPose2(mp_pose, mp_drawing, image, pose, jsonObject, frameNum, display=
     jsonObject["frames"].append(frameJsonObject)
     # Check if the original input image and the resultant image are specified to be displayed.
     if display:
-        clear_output(wait=True)  # for clear console output
+        # clear_output(wait=True)  # for clear console output
         # Display the original input image and the resultant image.
         plt.subplot()
         plt.imshow(output_image[:, :, ::-1])
