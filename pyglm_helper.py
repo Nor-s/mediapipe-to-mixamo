@@ -309,8 +309,8 @@ class ModelNode:
                     transform = calc_transform(position, rotation, scale)
                     transform_list.append(transform)
 
-    def normalize_spine(self, parent_node = None, parent_transform  = glm.mat4(1.0)):
-        if Mixamo.Spine.name in self.name  or self.name == Mixamo.LeftArm.name or self.name == Mixamo.RightArm.name or self.name == Mixamo.Neck.name:
+    def normalize_spine(self, parent_node=None, parent_transform=glm.mat4(1.0)):
+        if Mixamo.Spine.name in self.name or self.name == Mixamo.LeftArm.name or self.name == Mixamo.RightArm.name or self.name == Mixamo.Neck.name:
             # current_gizmo = self.get_gizmo(parent_transform)
             # current_world_pos = copy.deepcopy(current_gizmo.get_origin())
             # current_world_pos.z = 0.0
@@ -319,14 +319,14 @@ class ModelNode:
             # local_pos = parent_gizmo.get_local_pos(current_world_pos)
             # self.position.x = local_pos.x
             # self.position.y = local_pos.y
-            self.position.z = 0#local_pos.z
+            self.position.z = 0  # local_pos.z
             # print(self.name, ' ', self.position)
-            
+
         # self.tmp_transform = copy.deepcopy(parent_transform)
 
         for child in self.child:
-            child.normalize_spine(parent_node = self, parent_transform = self.tmp_transform*self.get_transform())
-
+            child.normalize_spine(
+                parent_node=self, parent_transform=self.tmp_transform*self.get_transform())
 
     def normalize(self, mixamo_list, mixamo_idx_map, len=0.0):
         if self.name == "Hips":
@@ -377,12 +377,11 @@ class ModelNode:
     def get_transform(self):
         return calc_transform(self.position, self.rotate, self.scale)
 
-    def get_gizmo(self, parent_transform=glm.mat4(1.0), is_apply_transform = True):
-        if is_apply_transform: 
+    def get_gizmo(self, parent_transform=glm.mat4(1.0), is_apply_transform=True):
+        if is_apply_transform:
             return self.gizmo.rotate(parent_transform*self.get_transform())
         else:
             return self.gizmo.rotate(parent_transform)
-
 
     def get_gizmo_apply_tmp(self, parent_transform=glm.mat4(1.0)):
         return self.gizmo.rotate(parent_transform*self.get_transform()*self.tmp_transform)
@@ -410,9 +409,10 @@ class ModelNode:
                 child.get_vec_and_group_list(
                     result_vec_list, result_group_list, group_list=group_list, parent_transform=copy.deepcopy(parent_transform*self.get_transform()), is_apply_tmp_transform=is_apply_tmp_transform)
 
-    def tmp_to_json(self, bones_json):
+    def tmp_to_json(self, bones_json, visibility_list, mixamo_idx_map, min_visibility=0.6):
         [t, r, s] = decompose(self.tmp_transform)
-        if not (r.w == 1.0 and r.x == 0.0 and r.y == 0.0 and r.z == 0.0):
+        visibility = visibility_list[mixamo_idx_map[self.name]]
+        if visibility >= min_visibility and (not (r.w == 1.0 and r.x == 0.0 and r.y == 0.0 and r.z == 0.0)):
             bone_json = {
                 "name": self.name,
                 "rotation": glm_quat_to_json(r),
@@ -421,10 +421,11 @@ class ModelNode:
             }
             bones_json["bones"].append(bone_json)
         for child in self.child:
-            child.tmp_to_json(bones_json)
+            child.tmp_to_json(bones_json, visibility_list,
+                              mixamo_idx_map, min_visibility)
 
 
-def get_anim_frame_json(anim_json_object,  fidx, hip_node, mixamo_name_idx_map):
+def get_anim_frame_json(anim_json_object,  fidx, hip_node, mixamo_name_idx_map, min_visibility=0.7):
     bones_json = {
         "time": fidx,
         "bones": []
@@ -436,7 +437,8 @@ def get_anim_frame_json(anim_json_object,  fidx, hip_node, mixamo_name_idx_map):
     root_node.normalize(glm_list, mixamo_name_idx_map)
     root_node.normalize_spine()
     root_node.calc_animation(glm_list, mixamo_name_idx_map)
-    root_node.tmp_to_json(bones_json)
+    root_node.tmp_to_json(bones_json, visibility_list,
+                          mixamo_name_idx_map, min_visibility)
     return bones_json
 
 
@@ -454,8 +456,8 @@ def get_anim_frame_vec_list(anim_json_object,  fidx, hip_node, mixamo_name_idx_m
     return [rv, rg]
 
 
-def find_hips(pixel3d_json):
-    if pixel3d_json["name"] == 'Hips':
+def find_pixel3d_json(pixel3d_json, name):
+    if pixel3d_json["name"] == name:
         return [True, pixel3d_json]
     else:
         for child in pixel3d_json["child"]:
@@ -463,6 +465,10 @@ def find_hips(pixel3d_json):
             if is_find:
                 return [is_find, result]
         return [False, None]
+
+
+def find_hips(pixel3d_json):
+    return find_pixel3d_json(pixel3d_json, Mixamo.Hips.name)
 
 
 def get_anim_json(anim_file_name, model_file_name):
@@ -500,7 +506,61 @@ def get_anim_json(anim_file_name, model_file_name):
         json_string = json.dump(anim_file_json, f, indent=2)
 
 
-def get_anim_json2(mixamo_anim_json, model_json):
+def set_relative_json_position(origin, detected_frame_json, anim_frame_json, factor):
+    x = (detected_frame_json["x"] - origin.x) * factor
+    y = (detected_frame_json["y"] - origin.y) * factor
+    z = (detected_frame_json["z"] - origin.z) * factor
+    anim_frame_json["x"] = x
+    anim_frame_json["y"] = -y
+    anim_frame_json["z"] = z
+
+
+def get_3d_len(right):
+    return math.sqrt((right["x"])**2 + (right["y"])**2 + (right["z"])**2)
+
+
+def find_bones(bones, name):
+    for bone in bones:
+        if bone["name"] == name:
+            return bone
+    return None
+
+
+def set_hips_position(model_binding_pose_json, detected_json, anim_json):
+    # pos*(model_left_right_len / 3d_left_right_len)  = p
+    try:
+        _, model_right = find_pixel3d_json(
+            model_binding_pose_json["node"], Mixamo.RightUpLeg.name)
+        if _ == False:
+            print("can't find Mixamo RightUpLeg")
+        model_len = get_3d_len(model_right["position"])
+        origin = None
+        factor = 1.0
+        for frame in anim_json["frames"]:
+            fidx = frame["time"]
+            hip2d = detected_json["frames"][fidx]["keypoints"][Mixamo.Hips]
+            if origin == None:
+                origin = glm.vec3(hip2d["x"], hip2d["y"], hip2d["z"])
+                anim_len = hip2d["len"]
+                factor = model_len/anim_len
+            else:
+                hips_bone = find_bones(frame["bones"], Mixamo.Hips.name)
+                if hips_bone == None:
+                    print(fidx, ' cant find hips bone')
+                set_relative_json_position(
+                    origin, hip2d, hips_bone["position"], factor)
+    except:
+        print("can't set hips position")
+
+
+def get_anim_json3(mixamo_anim_json, model_path, is_hips_move=False, min_visibility=0.7, is_apply_async=True):
+    model_json = None
+    with open(model_path) as f:
+        model_json = json.load(f)
+    return get_anim_json2(mixamo_anim_json, model_json, is_hips_move, min_visibility, is_apply_async=is_apply_async)
+
+
+def get_anim_json2(mixamo_anim_json, model_json, is_hips_move=False, min_visibility=0.7, is_apply_async=True):
     is_find, hip_node = find_hips(model_json["node"])
     if not is_find:
         return None
@@ -514,17 +574,27 @@ def get_anim_json2(mixamo_anim_json, model_json):
         "frames": [
         ]
     }
-    my_pool = Pool()
-    frame_json = [None for i in range(0, size)]
-    for fidx in range(0, size):
-        frame_json[fidx] = my_pool.apply_async(
-            get_anim_frame_json, (mixamo_anim_json, fidx, hip_node, mixamo_name_idx_map))
+    if is_apply_async:
+        my_pool = Pool()
+        frame_json = [None for i in range(0, size)]
+        for fidx in range(0, size):
+            frame_json[fidx] = my_pool.apply_async(
+                get_anim_frame_json, (mixamo_anim_json, fidx, hip_node, mixamo_name_idx_map, min_visibility))
 
-    my_pool.close()
-    my_pool.join()
-    for f in frame_json:
-        if f != None:
-            anim_file_json["frames"].append(f.get())
+        my_pool.close()
+        my_pool.join()
+        for f in frame_json:
+            if f != None:
+                anim_file_json["frames"].append(f.get())
+    else:
+        for fidx in range(0, size):
+            print(fidx)
+            anim_file_json["frames"].append(get_anim_frame_json(
+                mixamo_anim_json, fidx, hip_node, mixamo_name_idx_map, min_visibility))
+
+    if is_hips_move:
+        set_hips_position(model_json, mixamo_anim_json, anim_file_json)
+
     return anim_file_json
 
 
