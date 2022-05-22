@@ -6,6 +6,7 @@ import ntpath
 import glm
 import copy
 from enum import Enum, auto, IntEnum
+import math
 
 
 class Mixamo(IntEnum):
@@ -307,11 +308,12 @@ def mediapipeToMixamoHip(mediapipe_name_idx_map, resultKeyPointsJsonObject, medi
     lefthip2d = mediapipeJsonObject[frameNum]["keypoints"][mediapipe_name_idx_map["left_hip"]]
     righthip2d = mediapipeJsonObject[frameNum]["keypoints"][mediapipe_name_idx_map["right_hip"]]
     resultKeyPointsJsonObject["keypoints"].append({'x': (lefthip2d['x'] + righthip2d['x']) / 2.0,
-                                                   'y': -(lefthip2d['y'] + righthip2d['y']) / 2.0,
-                                                   'z': -(lefthip2d['z'] + righthip2d['z']) / 2.0,
+                                                   'y': (lefthip2d['y'] + righthip2d['y']) / 2.0,
+                                                   'z': (lefthip2d['z'] + righthip2d['z']) / 2.0,
                                                    'score': (lefthip2d['score'] + righthip2d['score']) / 2.0,
                                                    'name': mixamo_names[0][0],
-                                                   'parent': mixamo_names[0][2]})
+                                                   'len': math.sqrt((lefthip2d['x'] - righthip2d['x'])**2 + (lefthip2d['y'] - righthip2d['y'])**2 + (lefthip2d['z'] - righthip2d['z'])**2)
+                                                   })
     return
 
 
