@@ -21,21 +21,16 @@ def smooth_gif_resize(gif, frameWidth, frameHeight):
 
 # %%
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QAction, QFileDialog, QWidget, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow,  QFileDialog
 from PyQt5.QtGui import QMovie
 from PyQt5.QtCore import QSize
-import mediapipe_helper as mph
-import mixamo_helper as mmh
+from helper import mediapipe_helper as mph
+from helper import mixamo_helper as mmh
+from helper import pyglm_helper as glmh
 import json
-import pyglm_helper as glmh
 from multiprocessing import freeze_support
-from text_code import Ui_Dialog
+from pyqt_gui.text_code import Ui_Dialog
 
-#UI파일 연결
-#단, UI파일은 Python 코드 파일과 같은 디렉토리에 위치해야한다.
-# form_class = uic.loadUiType("gui.xml")[0]
-
-#화면을 띄우는데 사용되는 Class 선언
 class WindowClass(QMainWindow, Ui_Dialog) :
     def __init__(self) :
         super().__init__()
@@ -120,6 +115,7 @@ class WindowClass(QMainWindow, Ui_Dialog) :
             self.lbl_gif_movie.setMovie(movie)
             self.lbl_gif_movie.adjustSize()
             movie.start()
+            
 if __name__ == '__main__':
     freeze_support()
 

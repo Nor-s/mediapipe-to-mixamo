@@ -2,7 +2,7 @@ import glm
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import os
-from mixamo_helper import get_idx_group, get_mixamo_name_idx_map, Mixamo, frame_json_to_glm_vec_list
+from .mixamo_helper import get_idx_group, get_mixamo_name_idx_map, Mixamo, frame_json_to_glm_vec_list
 import copy
 import math
 from multiprocessing import Pool

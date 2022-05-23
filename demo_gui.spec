@@ -8,7 +8,7 @@ def get_mediapipe_path():
     return mediapipe_path
 
 a = Analysis(
-    ['gui.py'],
+    ['./src/demo_gui.py'],
     pathex=[],
     binaries=[],
     datas=[],

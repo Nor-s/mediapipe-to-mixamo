@@ -1,7 +1,7 @@
-import mediapipe_helper as mph
-import mixamo_helper as mmh
+import helper.mediapipe_helper as mph
+import helper.mixamo_helper as mmh
 import json
-import pyglm_helper as glmh
+import helper.pyglm_helper as glmh
 from multiprocessing import freeze_support
 import argparse
 

@@ -9,7 +9,7 @@ def get_mediapipe_path():
     return mediapipe_path
 
 a = Analysis(
-    ['demo.py'],
+    ['./src/demo.py'],
     pathex=[],
     binaries=[],
     datas=[],
