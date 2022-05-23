@@ -4,6 +4,15 @@
 
 ![](./screenshot/demo.png)
 
+## input
+
+-   model binding pose data
+
+    -   sample_input_data/zom_model.json: pixel3d->debug->model to json
+
+-   animation gif file
+    -   sample_input_data/figure.gif [link](https://news.yahoo.com/gif-guide-figure-skaters-39-jumps-olympics-171900531.html)
+
 ## references
 
 https://medium.com/@junyingw/how-to-use-mocap-data-to-animate-your-own-avatars-in-maya-889550138365
