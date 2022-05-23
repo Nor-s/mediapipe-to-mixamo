@@ -123,13 +123,17 @@ def getGifAvgFps(pil_ImageObject):
     """ Returns the average framerate of a PIL Image object """
     pil_ImageObject.seek(0)
     frames = duration = 0
+
     while True:
         try:
             frames += 1
             duration += pil_ImageObject.info['duration']
             pil_ImageObject.seek(pil_ImageObject.tell() + 1)
         except EOFError:
-            return frames / duration * 1000
+            try:
+                return frames / duration * 1000
+            except Exception as e:
+                return 24
     return 24
 
 
