@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>344</width>
-    <height>446</height>
+    <height>445</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,7 +23,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>20</y>
+     <y>10</y>
      <width>321</width>
      <height>411</height>
     </rect>
@@ -60,8 +60,8 @@
       <item row="3" column="2">
        <widget class="QComboBox" name="cmb_gif"/>
       </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="btn_add_model">
+      <item row="2" column="1">
+       <widget class="QLabel" name="lbl_display2">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -69,7 +69,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Add Model</string>
+         <string>Animation GIF</string>
         </property>
        </widget>
       </item>
@@ -83,8 +83,8 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="lbl_display2">
+      <item row="1" column="1">
+       <widget class="QPushButton" name="btn_add_model">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -92,7 +92,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Animation GIF</string>
+         <string>Add Model</string>
         </property>
        </widget>
       </item>
@@ -120,6 +120,56 @@
     </item>
     <item>
      <layout class="QGridLayout" name="gridLayout_4">
+      <item row="3" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QSlider" name="h_slider_min_visibility">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximum">
+           <number>99</number>
+          </property>
+          <property name="sliderPosition">
+           <number>70</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="tickPosition">
+           <enum>QSlider::TicksAbove</enum>
+          </property>
+          <property name="tickInterval">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lbl_slider_min_visibility">
+          <property name="text">
+           <string>70</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Min Visibility</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Model complexity</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="1">
        <widget class="QLabel" name="lbl_display3">
         <property name="sizePolicy">
@@ -148,6 +198,48 @@
       </item>
       <item row="1" column="2">
        <widget class="QComboBox" name="cmb_output"/>
+      </item>
+      <item row="2" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QSlider" name="h_slider_model_complexity">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximum">
+           <number>2</number>
+          </property>
+          <property name="sliderPosition">
+           <number>1</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="invertedAppearance">
+           <bool>false</bool>
+          </property>
+          <property name="invertedControls">
+           <bool>false</bool>
+          </property>
+          <property name="tickPosition">
+           <enum>QSlider::TicksAbove</enum>
+          </property>
+          <property name="tickInterval">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lbl_slider_model_complexity">
+          <property name="text">
+           <string>1</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
