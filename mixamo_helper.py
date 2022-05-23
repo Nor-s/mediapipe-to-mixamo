@@ -1,11 +1,9 @@
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
-from IPython.display import clear_output
 import ntpath
 import glm
 import copy
-from enum import Enum, auto, IntEnum
+from enum import auto, IntEnum
 import math
 
 

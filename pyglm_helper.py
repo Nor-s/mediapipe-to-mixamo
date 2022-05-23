@@ -503,7 +503,7 @@ def get_anim_json(anim_file_name, model_file_name):
         if f != None:
             anim_file_json["frames"].append(f.get())
     with open('./output/' + ntpath.basename(anim_file_name) + '_'+ntpath.basename(model_file_name) + '_final.json', 'w') as f:
-        json_string = json.dump(anim_file_json, f, indent=2)
+        json.dump(anim_file_json, f, indent=2)
 
 
 def set_relative_json_position(origin, detected_frame_json, anim_frame_json, factor):
@@ -549,8 +549,8 @@ def set_hips_position(model_binding_pose_json, detected_json, anim_json):
                     print(fidx, ' cant find hips bone')
                 set_relative_json_position(
                     origin, hip2d, hips_bone["position"], factor)
-    except:
-        print("can't set hips position")
+    except Exception as e :
+        print("can't set hips position: ", e)
 
 
 def get_anim_json3(mixamo_anim_json, model_path, is_hips_move=False, min_visibility=0.7, is_apply_async=True):
@@ -588,7 +588,6 @@ def get_anim_json2(mixamo_anim_json, model_json, is_hips_move=False, min_visibil
                 anim_file_json["frames"].append(f.get())
     else:
         for fidx in range(0, size):
-            print(fidx)
             anim_file_json["frames"].append(get_anim_frame_json(
                 mixamo_anim_json, fidx, hip_node, mixamo_name_idx_map, min_visibility))
 
