@@ -12,6 +12,7 @@ from PyQt5.QtGui import QMovie
 from PyQt5.QtWidgets import QApplication, QMainWindow,  QFileDialog
 import sys
 from PIL import Image
+import argparse
 
 
 def smooth_gif_resize(gif, frameWidth, frameHeight):
@@ -109,11 +110,14 @@ class WindowClass(QMainWindow, Ui_Dialog):
             self.statusBar().showMessage('Error! ' + str(e))
             return
 
+    def add_cmb_item(self, item, cmb):
+        cmb.addItem(item)
+        cmb.setCurrentIndex(cmb.count() - 1)
+
     def add_cmb_item_from_dialog(self, title, path, filter, cmb, is_save=False):
         fname = self.show_dialog(title, path, filter, is_save)
         if fname != '':
-            cmb.addItem(fname)
-            cmb.setCurrentIndex(cmb.count() - 1)
+            self.add_cmb_item(fname, cmb)
 
     # filter: "Images (*.png *.xpm .jpg);;Text files (.txt);;XML files (*.xml)"
     def show_dialog(self, title, path, filter, is_save=False):
@@ -138,7 +142,18 @@ class WindowClass(QMainWindow, Ui_Dialog):
 if __name__ == '__main__':
     freeze_support()
 
+    parser = argparse.ArgumentParser(description='Mediapipe To Mixamo')
+    parser.add_argument(
+        'arg1', help='model binding pose json data (pixel3d: Export model)')
+    parser.add_argument('arg2', help='output path')
+
+    args = parser.parse_args()
+    model_path = args.arg1
+    output_path = args.arg2
+
     app = QApplication(sys.argv)
     myWindow = WindowClass()
+    myWindow.add_cmb_item(model_path, myWindow.cmb_model)
+    myWindow.add_cmb_item(output_path, myWindow.cmb_output)
     myWindow.show()
     app.exec_()

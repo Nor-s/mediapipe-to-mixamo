@@ -2,14 +2,14 @@
 
 
 block_cipher = None
+
 def get_mediapipe_path():
     import mediapipe
     mediapipe_path = mediapipe.__path__[0]
     return mediapipe_path
 
-
 a = Analysis(
-    ['src/demo.py'],
+    ['./src/demo.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -31,33 +31,21 @@ a.binaries = filter(lambda x: 'mediapipe' not in x[0], a.binaries)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     [],
-    exclude_binaries=True,
     name='demo',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-)
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name='demo',
-)
-app = BUNDLE(
-    coll,
-    name='demo.app',
-    icon=None,
-    bundle_identifier=None,
 )
