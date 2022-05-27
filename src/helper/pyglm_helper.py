@@ -506,17 +506,21 @@ def get_anim_json(anim_file_name, model_file_name):
         json.dump(anim_file_json, f, indent=2)
 
 
-def set_relative_json_position(origin, detected_frame_json, anim_frame_json, factor, yfactor):
-    x = (detected_frame_json["x"] - origin.x) * factor
-    y = (detected_frame_json["y"] - origin.y) *yfactor * factor
+def set_relative_json_position(origin, detected_frame_json, anim_frame_json, factor, width, height):
+    x = (detected_frame_json["x"] - origin.x)* factor
+    y = 0.0
+    if width < height:
+        y = (detected_frame_json["y"] - origin.y) *(width/height)* factor
+    else:
+        y = (detected_frame_json["y"] - origin.y) *(height/width)* factor
     z = (detected_frame_json["z"] - origin.z) * factor
     anim_frame_json["x"] = x
     anim_frame_json["y"] = -y
     anim_frame_json["z"] = z
 
 
-def get_3d_len(right):
-    return math.sqrt((right["x"])**2 + (right["y"])**2 + (right["z"])**2)
+def get_3d_len(left):
+    return math.sqrt((left["x"])**2 + (left["y"])**2 + (left["z"])**2)
 
 
 def find_bones(bones, name):
@@ -531,12 +535,16 @@ def set_hips_position(model_binding_pose_json, detected_json, anim_json):
     try:
         _, model_right = find_pixel3d_json(
             model_binding_pose_json["node"], Mixamo.RightUpLeg.name)
-        if _ == False:
+        if _ == False :
             print("can't find Mixamo RightUpLeg")
+            return
+
         model_len = get_3d_len(model_right["position"])
         origin = None
         factor = 1.0
-        yfactor = detected_json["height"]/detected_json["width"]
+        width = detected_json["width"]
+        height = detected_json["height"]
+
         for frame in anim_json["frames"]:
             fidx = frame["time"]
             hip2d = detected_json["frames"][fidx]["keypoints"][Mixamo.Hips]
@@ -544,12 +552,13 @@ def set_hips_position(model_binding_pose_json, detected_json, anim_json):
                 origin = glm.vec3(hip2d["x"], hip2d["y"], hip2d["z"])
                 anim_len = hip2d["len"]
                 factor = model_len/anim_len
+
             else:
                 hips_bone = find_bones(frame["bones"], Mixamo.Hips.name)
                 if hips_bone == None:
                     print(fidx, ' cant find hips bone')
                 set_relative_json_position(
-                    origin, hip2d, hips_bone["position"], factor, yfactor)
+                    origin, hip2d, hips_bone["position"], factor, width, height)
     except Exception as e :
         print("can't set hips position: ", e)
 

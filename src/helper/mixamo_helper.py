@@ -293,7 +293,7 @@ def avgMixamoData(mediapipe_name_idx_map, mediapipeJsonObject, frameNum, name1, 
     return [x, y, z, score]
 
 
-def mediapipeToMixamoHip(mediapipe_name_idx_map, resultKeyPointsJsonObject, mediapipeJsonObject, frameNum):
+def mediapipeToMixamoHip(mediapipe_name_idx_map, resultKeyPointsJsonObject, mediapipeJsonObject, frameNum, width, height):
     # left hip <->right hip
     x, y, z, score = avgMixamoData(mediapipe_name_idx_map,
                                    mediapipeJsonObject, frameNum, "left_hip", "right_hip")
@@ -310,7 +310,7 @@ def mediapipeToMixamoHip(mediapipe_name_idx_map, resultKeyPointsJsonObject, medi
                                                    'z': (lefthip2d['z'] + righthip2d['z']) / 2.0,
                                                    'score': (lefthip2d['score'] + righthip2d['score']) / 2.0,
                                                    'name': mixamo_names[0][0],
-                                                   'len': math.sqrt((lefthip2d['x'] - righthip2d['x'])**2 + (lefthip2d['y'] - righthip2d['y'])**2 + (lefthip2d['z'] - righthip2d['z'])**2)
+                                                   'len': math.sqrt(((lefthip2d['x'] - righthip2d['x']))**2 + ((lefthip2d['y'] - righthip2d['y']))**2 + ((lefthip2d['z'] - righthip2d['z']))**2)
                                                    })
     return
 
@@ -414,7 +414,7 @@ def mediapipeToMixamo(mediapipe_name_idx_map, mediapipeJsonObject):
             ]
         }
         mediapipeToMixamoHip(mediapipe_name_idx_map, keypointsJsonObject,
-                             mediapipeJsonObject['frames'], fidx)
+                             mediapipeJsonObject['frames'], fidx,  mediapipeJsonObject['width'], mediapipeJsonObject['height'] )
         mediapipeToMixamoSpine(mediapipe_name_idx_map, keypointsJsonObject,
                                mediapipeJsonObject['frames'], fidx)
         mediapipeToMixamoNeck(mediapipe_name_idx_map, keypointsJsonObject,
