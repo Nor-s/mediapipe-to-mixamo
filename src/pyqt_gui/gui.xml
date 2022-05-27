@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>358</width>
-    <height>510</height>
+    <width>353</width>
+    <height>509</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -90,6 +90,9 @@
         <height>200</height>
        </size>
       </property>
+      <property name="contextMenuPolicy">
+       <enum>Qt::DefaultContextMenu</enum>
+      </property>
       <property name="tabPosition">
        <enum>QTabWidget::North</enum>
       </property>
@@ -107,7 +110,7 @@
       </property>
       <widget class="QWidget" name="tab2">
        <attribute name="title">
-        <string notr="true">Input File</string>
+        <string notr="true">Input</string>
        </attribute>
        <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
@@ -189,7 +192,7 @@
       </widget>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string notr="true">Output File</string>
+        <string notr="true">Output</string>
        </attribute>
        <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
@@ -227,9 +230,9 @@
        <widget class="QWidget" name="gridLayoutWidget">
         <property name="geometry">
          <rect>
-          <x>10</x>
+          <x>0</x>
           <y>10</y>
-          <width>251</width>
+          <width>261</width>
           <height>161</height>
          </rect>
         </property>
@@ -369,7 +372,7 @@
          <item row="3" column="0">
           <widget class="QCheckBox" name="chk_is_move">
            <property name="text">
-            <string>Move root</string>
+            <string>Move</string>
            </property>
            <property name="checked">
             <bool>true</bool>

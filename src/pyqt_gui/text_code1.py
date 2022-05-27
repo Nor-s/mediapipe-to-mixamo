@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(358, 510)
+        Dialog.resize(353, 509)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -52,6 +52,7 @@ class Ui_Dialog(object):
         sizePolicy.setHeightForWidth(self.tabWidget.sizePolicy().hasHeightForWidth())
         self.tabWidget.setSizePolicy(sizePolicy)
         self.tabWidget.setMinimumSize(QtCore.QSize(279, 200))
+        self.tabWidget.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
         self.tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
         self.tabWidget.setTabShape(QtWidgets.QTabWidget.Rounded)
         self.tabWidget.setUsesScrollButtons(False)
@@ -108,7 +109,7 @@ class Ui_Dialog(object):
         self.btn_add_gif.setSizePolicy(sizePolicy)
         self.btn_add_gif.setObjectName("btn_add_gif")
         self.gridLayout_3.addWidget(self.btn_add_gif, 2, 1, 1, 1)
-        self.tabWidget.addTab(self.tab2, "Input File")
+        self.tabWidget.addTab(self.tab2, "Input")
         self.tab = QtWidgets.QWidget()
         self.tab.setObjectName("tab")
         self.layoutWidget1 = QtWidgets.QWidget(self.tab)
@@ -128,11 +129,11 @@ class Ui_Dialog(object):
         self.cmb_output = QtWidgets.QComboBox(self.layoutWidget1)
         self.cmb_output.setObjectName("cmb_output")
         self.gridLayout_4.addWidget(self.cmb_output, 0, 2, 1, 1)
-        self.tabWidget.addTab(self.tab, "Output File")
+        self.tabWidget.addTab(self.tab, "Output")
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
         self.gridLayoutWidget = QtWidgets.QWidget(self.tab_2)
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(10, 10, 251, 161))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 10, 261, 161))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -232,7 +233,7 @@ class Ui_Dialog(object):
         self.label_3.setText(_translate("Dialog", "Maximum Frame"))
         self.label_2.setText(_translate("Dialog", "Min Visibility"))
         self.lbl_slider_model_complexity.setText(_translate("Dialog", "1"))
-        self.chk_is_move.setText(_translate("Dialog", "Move root"))
+        self.chk_is_move.setText(_translate("Dialog", "Move"))
         self.btn_convert.setText(_translate("Dialog", "Convert"))
 
 
