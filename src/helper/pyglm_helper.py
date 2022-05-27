@@ -506,9 +506,9 @@ def get_anim_json(anim_file_name, model_file_name):
         json.dump(anim_file_json, f, indent=2)
 
 
-def set_relative_json_position(origin, detected_frame_json, anim_frame_json, factor):
+def set_relative_json_position(origin, detected_frame_json, anim_frame_json, factor, yfactor):
     x = (detected_frame_json["x"] - origin.x) * factor
-    y = (detected_frame_json["y"] - origin.y) * factor
+    y = (detected_frame_json["y"] - origin.y) *yfactor * factor
     z = (detected_frame_json["z"] - origin.z) * factor
     anim_frame_json["x"] = x
     anim_frame_json["y"] = -y
@@ -536,6 +536,7 @@ def set_hips_position(model_binding_pose_json, detected_json, anim_json):
         model_len = get_3d_len(model_right["position"])
         origin = None
         factor = 1.0
+        yfactor = detected_json["height"]/detected_json["width"]
         for frame in anim_json["frames"]:
             fidx = frame["time"]
             hip2d = detected_json["frames"][fidx]["keypoints"][Mixamo.Hips]
@@ -548,7 +549,7 @@ def set_hips_position(model_binding_pose_json, detected_json, anim_json):
                 if hips_bone == None:
                     print(fidx, ' cant find hips bone')
                 set_relative_json_position(
-                    origin, hip2d, hips_bone["position"], factor)
+                    origin, hip2d, hips_bone["position"], factor, yfactor)
     except Exception as e :
         print("can't set hips position: ", e)
 

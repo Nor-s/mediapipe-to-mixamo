@@ -383,6 +383,8 @@ def mediapipeToMixamo(mediapipe_name_idx_map, mediapipeJsonObject):
         "fileName": mediapipeJsonObject['fileName'],
         "duration": mediapipeJsonObject['duration'],
         "ticksPerSecond": mediapipeJsonObject['ticksPerSecond'],
+        "width": mediapipeJsonObject['width'],
+        "height": mediapipeJsonObject['height'],
         "frames": []
     }
     for fidx in range(0, len(mediapipeJsonObject['frames'])):

@@ -73,10 +73,16 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>279</width>
+        <height>200</height>
+       </size>
       </property>
       <property name="tabPosition">
        <enum>QTabWidget::North</enum>
@@ -85,7 +91,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <property name="tabBarAutoHide">
        <bool>false</bool>
@@ -181,7 +187,7 @@
          <rect>
           <x>0</x>
           <y>10</y>
-          <width>281</width>
+          <width>271</width>
           <height>151</height>
          </rect>
         </property>
@@ -214,7 +220,7 @@
          <rect>
           <x>10</x>
           <y>10</y>
-          <width>271</width>
+          <width>251</width>
           <height>161</height>
          </rect>
         </property>
