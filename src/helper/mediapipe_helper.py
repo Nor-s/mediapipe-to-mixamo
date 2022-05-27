@@ -141,7 +141,13 @@ def gif_to_mediapipe_json(fileName, maxFrameNum=100, modelComplexity=2, minDetec
     mp_pose = mp.solutions.pose
     FILENAME = os.path.join(os.path.dirname('__file__'), fileName)
     # only gif
-    fps = getGifAvgFps(Image.open(FILENAME))
+    # fps = getGifAvgFps(Image.open(FILENAME))
+
+    frame_num = -1
+    pose_video = mp_pose.Pose(static_image_mode=False,
+                              min_detection_confidence=minDetectionConfidence, model_complexity=modelComplexity)
+    video = cv2.VideoCapture(fileName)
+    fps = video.get(cv2.CAP_PROP_FPS)
     jsonObject = {
         "fileName": fileName,
         "duration": 0,
@@ -149,11 +155,6 @@ def gif_to_mediapipe_json(fileName, maxFrameNum=100, modelComplexity=2, minDetec
         "frames": [
         ]
     }
-    frame_num = -1
-    pose_video = mp_pose.Pose(static_image_mode=False,
-                              min_detection_confidence=minDetectionConfidence, model_complexity=modelComplexity)
-    video = cv2.VideoCapture(fileName)
-
     while video.isOpened():
         ok, frame = video.read()
         frame_num += 1

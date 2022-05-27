@@ -1,7 +1,6 @@
 # To add a new cell, type '# %%'
 # To add a new markdown cell, type '# %% [markdown]'
 # %%
-from pyqt_gui.text_code1 import Ui_Dialog
 from multiprocessing import freeze_support
 import json
 from helper import pyglm_helper as glmh
@@ -12,24 +11,25 @@ from PyQt5.QtGui import QMovie
 from PyQt5.QtWidgets import QApplication, QMainWindow,  QFileDialog
 import sys
 from PIL import Image
+from pyqt_gui.text_code1 import Ui_Dialog
 import argparse
 
 
-def smooth_gif_resize(gif, frameWidth, frameHeight):
+def smooth_gif_resize(gif, frame_width, frame_height):
     gif = Image.open(gif)
-    gifWidth0, gifHeight0 = gif.size
+    gif_width0, gif_height0 = gif.size
 
-    widthRatio = frameWidth / gifWidth0
-    heightRatio = frameHeight / gifHeight0
+    width_ratio = frame_width / gif_width0
+    height_ratio = frame_height / gif_height0
 
-    if widthRatio >= heightRatio:
-        gifWidth1 = gifWidth0 * heightRatio
-        gifHeight1 = frameHeight
-        return gifWidth1, gifHeight1
+    if width_ratio >= height_ratio:
+        gif_width1 = gif_width0 * height_ratio
+        gif_height1 = frame_height
+        return gif_width1, gif_height1
 
-    gifWidth1 = frameWidth
-    gifHeight1 = gifHeight0 * widthRatio
-    return round(gifWidth1), round(gifHeight1)
+    gif_width1 = frame_width
+    gif_height1 = gif_height0 * width_ratio
+    return round(gif_width1), round(gif_height1)
 
 
 # %%
@@ -76,7 +76,7 @@ class WindowClass(QMainWindow, Ui_Dialog):
 
     def add_gif_path(self):
         self.add_cmb_item_from_dialog(
-            "Add Animation GIF File", "./", "GIF (*.gif)", self.cmb_gif)
+            "Add Animation GIF File", "./", "GIF (*.gif);; MP4 (*.mp4)", self.cmb_gif)
 
     def add_output_path(self):
         self.add_cmb_item_from_dialog(
@@ -129,14 +129,22 @@ class WindowClass(QMainWindow, Ui_Dialog):
 
     def show_gif(self):
         if self.cmb_gif.currentIndex() != -1:
-            movie = QMovie(self.cmb_gif.currentText())
+            try:
+                movie = QMovie(self.cmb_gif.currentText())
 
-            gif_size = QSize(
-                *smooth_gif_resize(self.cmb_gif.currentText(), 150, 150))
-            movie.setScaledSize(gif_size)
-            self.lbl_gif_movie.setMovie(movie)
-            self.lbl_gif_movie.adjustSize()
-            movie.start()
+                try:
+                    gif_size = QSize(
+                        *smooth_gif_resize(self.cmb_gif.currentText(), 150, 150))
+                    movie.setScaledSize(gif_size)
+                except Exception as e:
+                    movie.setScaledSize(QSize(150, 150))
+
+                self.lbl_gif_movie.setMovie(movie)
+                self.lbl_gif_movie.adjustSize()
+                movie.start()
+            except Exception as e:
+                self.statusBar().showMessage('Error: gif show' + str(e))
+                
 
 
 if __name__ == '__main__':
@@ -144,8 +152,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Mediapipe To Mixamo')
     parser.add_argument(
-        'arg1', help='model binding pose json data (pixel3d: Export model)')
-    parser.add_argument('arg2', help='output path')
+        '--arg1', help='model binding pose json data (pixel3d: Export model)', default=None)
+    parser.add_argument('--arg2', help='output path', default=None)
 
     args = parser.parse_args()
     model_path = args.arg1
@@ -153,7 +161,9 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     myWindow = WindowClass()
-    myWindow.add_cmb_item(model_path, myWindow.cmb_model)
-    myWindow.add_cmb_item(output_path, myWindow.cmb_output)
+    if(model_path != None):
+        myWindow.add_cmb_item(model_path, myWindow.cmb_model)
+    if(output_path != None):
+        myWindow.add_cmb_item(output_path, myWindow.cmb_output)
     myWindow.show()
     app.exec_()
