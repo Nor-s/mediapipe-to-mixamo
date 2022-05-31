@@ -1,14 +1,30 @@
-# **v0.0.2**
+# **v0.0.3**
 
 -   mediapipe to mixamo
 
-![](./screenshot/demo.png)
+![](./screenshot/cap.png)
+
+## feature
+
+-   mediapipe to mixamo animation data
+
+-   root motion on/off (move hip)
+
+-   display
+
+## todo
+
+-   hand, foot: accuracy improvement
+
+-   webcam => pixel3D
+
+-   fbx export (maybe pixel3D feature)
 
 ## input
 
 -   model binding pose data
 
-    -   sample_input_data/zom_model.json: pixel3d->debug->model to json
+    -   sample_input_data/zom_model.json: [pixel3d](https://github.com/Nor-s/Pixel3D)->debug->model to json
 
 -   animation gif file
     -   sample_input_data/figure.gif [link](https://news.yahoo.com/gif-guide-figure-skaters-39-jumps-olympics-171900531.html)
