@@ -1,16 +1,26 @@
-# **v0.0.3**
+# **MP2MM v0.0.3**
 
 -   mediapipe to mixamo
 
 ![](./screenshot/cap.png)
+
+-   result (on pixel3D)
+
+![](./screenshot/animation_2.gif)
+
+## v0.0.2 => v0.0.3 update
+
+-   accuracy, calculation speed improvement
+-   Show how the mediapipe performs pose estimation.
+-   Show result the mediapipe to mixamo (plot)
+-   add slider for min detection confidence
+-   add checkbox for show result (Checking this will slow it down.)
 
 ## feature
 
 -   mediapipe to mixamo animation data
 
 -   root motion on/off (move hip)
-
--   display
 
 ## todo
 
