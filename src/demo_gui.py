@@ -3,38 +3,13 @@
 # %%
 from multiprocessing import freeze_support
 import json
-from helper import pyglm_helper as glmh
-from helper import mixamo_helper as mmh
-from helper import mediapipe_helper as mph
-from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QMovie
+from helper.mediapipe_to_mixamo import mediapipe_to_mixamo
 from PyQt5.QtWidgets import QApplication, QMainWindow,  QFileDialog
 import sys
-from PIL import Image
 from pyqt_gui.text_code1 import Ui_Dialog
 import argparse
 
-
-def smooth_gif_resize(gif, frame_width, frame_height):
-    gif = Image.open(gif)
-    gif_width0, gif_height0 = gif.size
-
-    width_ratio = frame_width / gif_width0
-    height_ratio = frame_height / gif_height0
-
-    if width_ratio >= height_ratio:
-        gif_width1 = gif_width0 * height_ratio
-        gif_height1 = frame_height
-        return gif_width1, gif_height1
-
-    gif_width1 = frame_width
-    gif_height1 = gif_height0 * width_ratio
-    return round(gif_width1), round(gif_height1)
-
-
 # %%
-
-
 class WindowClass(QMainWindow, Ui_Dialog):
     def __init__(self):
         super().__init__()
@@ -43,6 +18,7 @@ class WindowClass(QMainWindow, Ui_Dialog):
 
         self.setFixedWidth(self.frameGeometry().width())
         self.setFixedHeight(self.frameGeometry().height())
+        self.is_converting = False
 
         self.btn_add_model.adjustSize()
         # 버튼에 기능을 연결하는 코드
@@ -50,13 +26,15 @@ class WindowClass(QMainWindow, Ui_Dialog):
         self.btn_add_gif.clicked.connect(self.add_gif_path)
         self.btn_add_output.clicked.connect(self.add_output_path)
         self.btn_convert.clicked.connect(self.convert)
-        self.cmb_gif.currentIndexChanged.connect(self.show_gif)
+        # self.cmb_gif.currentIndexChanged.connect(self.show_gif)
         self.h_slider_min_visibility.valueChanged.connect(
             self.set_lbl_min_visibility)
         self.h_slider_model_complexity.valueChanged.connect(
             self.set_lbl_model_complexity)
         self.h_slider_max_frame_num.valueChanged.connect(
             self.set_lbl_max_frame_num)
+        self.h_slider_min_detection_confidence.valueChanged.connect(
+            self.set_lbl_min_detection_confidence)
 
     def set_lbl_min_visibility(self):
         self.lbl_slider_min_visibility.setText(
@@ -70,24 +48,34 @@ class WindowClass(QMainWindow, Ui_Dialog):
         self.lbl_slider_max_frame_num.setText(
             str(self.h_slider_max_frame_num.value()))
 
+    def set_lbl_min_detection_confidence(self):
+        self.lbl_slider_min_detection_confidence.setText(
+            str(self.h_slider_min_detection_confidence.value()))
+
+
+
     def add_model_path(self):
         self.add_cmb_item_from_dialog(
             "Add Model Json File", "./", "Json (*.json)", self.cmb_model)
 
     def add_gif_path(self):
         self.add_cmb_item_from_dialog(
-            "Add Animation GIF File", "./", "GIF (*.gif);; MP4 (*.mp4)", self.cmb_gif)
+            "Add Animation GIF File", "./", "GIF (*.gif);; MP4 (*.mp4);; AVI (*.avi);; All files (*.*)", self.cmb_gif)
 
     def add_output_path(self):
         self.add_cmb_item_from_dialog(
             "Select Output File", "./", "Json (*.json)", self.cmb_output, is_save=True)
 
     def convert(self):
+        if self.is_converting:
+            return
         self.statusBar().showMessage('Converting...')
         if self.cmb_model.currentIndex() == -1 or self.cmb_gif.currentIndex() == -1 or self.cmb_output.currentIndex() == -1:
             self.statusBar().showMessage('Please try again')
             return
+        
         try:
+            self.is_converting = True
             model_path = self.cmb_model.currentText()
             gif_path = self.cmb_gif.currentText()
             output_path = self.cmb_output.currentText()
@@ -95,19 +83,26 @@ class WindowClass(QMainWindow, Ui_Dialog):
             model_complexity = self.h_slider_model_complexity.value()
             min_visibility = self.h_slider_min_visibility.value()/100.0
             max_frame_num = self.h_slider_max_frame_num.value()
+            min_detection_confidence = self.h_slider_min_detection_confidence.value()/100.0
             is_move_hips = self.chk_is_move.isChecked()
-            mediapipe_json_object = mph.gif_to_mediapipe_json(
-                fileName=gif_path, maxFrameNum=max_frame_num, modelComplexity=model_complexity)
-            mixamo_json_object = mmh.mediapipeToMixamo(
-                mph.get_name_idx_map(), mediapipe_json_object)
-            anim_json = glmh.get_anim_json3(
-                mixamo_json_object, model_path, is_hips_move=is_move_hips, min_visibility=min_visibility)
+            is_show_result = self.chk_is_show_result.isChecked()
+
+            _, anim_json = mediapipe_to_mixamo(model_path, 
+                                gif_path, 
+                                is_move_hips, 
+                                min_visibility= min_visibility, 
+                                max_frame_num= max_frame_num,
+                                model_complexity = model_complexity,
+                                is_show_result=is_show_result,
+                                min_detection_confidence=min_detection_confidence)
             with open(output_path, 'w') as f:
                 json.dump(anim_json, f, indent=2)
             self.statusBar().showMessage('Success!')
+            self.is_converting = False
         except Exception as e:
             print(e)
             self.statusBar().showMessage('Error! ' + str(e))
+            self.is_converting = False
             return
 
     def add_cmb_item(self, item, cmb):
@@ -126,26 +121,6 @@ class WindowClass(QMainWindow, Ui_Dialog):
         else:
             fname = QFileDialog.getSaveFileName(self, title, path, filter)
         return fname[0]
-
-    def show_gif(self):
-        if self.cmb_gif.currentIndex() != -1:
-            try:
-                movie = QMovie(self.cmb_gif.currentText())
-
-                try:
-                    gif_size = QSize(
-                        *smooth_gif_resize(self.cmb_gif.currentText(), 150, 150))
-                    movie.setScaledSize(gif_size)
-                except Exception as e:
-                    movie.setScaledSize(QSize(150, 150))
-
-                self.lbl_gif_movie.setMovie(movie)
-                self.lbl_gif_movie.adjustSize()
-                movie.start()
-            except Exception as e:
-                self.statusBar().showMessage('Error: gif show' + str(e))
-                
-
 
 if __name__ == '__main__':
     freeze_support()

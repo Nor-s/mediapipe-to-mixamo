@@ -8,8 +8,8 @@ import math
 from multiprocessing import Pool
 import ntpath
 import json
-
-
+import numpy as np
+import cv2
 def set_axes(ax, azim=10, elev=10, xrange=1.0, yrange=1.0, zrange=1.0):
     ax.set_xlabel("Z")
     ax.set_ylabel("X")
@@ -46,6 +46,22 @@ def draw_list(vec_list=[], group_lists=[[]], azim=10, range=1.0):
         ax1.plot(dot['x'], dot['y'], dot['z'], marker='o')
 
     plt.show()
+
+def glm_list_to_image(fig, vec_list=[], group_lists=[[]], azim=10, range=1.0):
+    
+    ax1 = plt.axes(projection='3d')
+    set_axes(ax1, elev=10, azim=azim, xrange=range, yrange=range, zrange=range)
+    dots = get_dot(vec_list, group_lists)
+    for dot in dots:
+        ax1.plot(dot['x'], dot['y'], dot['z'], marker='o')
+    
+    fig.canvas.draw()
+    img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8,
+            sep='')
+    img  = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    # img is rgb, convert to opencv's default bgr
+    return  cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
+
 
 
 def glm_list_to_gif(glm_list, idx_group=[], fps=24, save_path='.', range=1.0):
