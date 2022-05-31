@@ -15,6 +15,7 @@
 -   Show result the mediapipe to mixamo (plot)
 -   add slider for min detection confidence
 -   add checkbox for show result (Checking this will slow it down.)
+-   Now it supports not only gif, but also extensions like MP4.(Only files that can be received from `cv2.VideoCapture`)
 
 ## feature
 
