@@ -1,6 +1,6 @@
-from .mixamo_helper import Mixamo, get_mixamo_name_idx_map, get_mixamo_name_mediapipe_name_map
+from .mixamo_helper import Mixamo,  get_mixamo_name_idx_map, get_mixamo_name_mediapipe_name_map
 from .mediapipe_helper import get_name_idx_map
-from .pyglm_helper import get_3d_len,  find_pixel3d_json, find_bones, find_hips, ModelNode, glm_list_to_image
+from .pyglm_helper import get_3d_len, draw_list2, find_pixel3d_json, find_bones, find_hips, ModelNode, glm_list_to_image
 import json
 import cv2
 import glm
@@ -98,67 +98,76 @@ def mediapipe_to_mixamo2(anim_result_json,
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-    # init medaipipe
+    frame_num = -1
+    plt.ion()
+    plt.close()
+    fig = None
+    if is_show_result: 
+        fig = plt.figure()
+        plt.show()
+    
+    # init mediapipe
     mp_pose = mp.solutions.pose
     mp_drawing = mp.solutions.drawing_utils 
-    pose_video = mp_pose.Pose(static_image_mode=static_image_mode,
-                        min_detection_confidence=min_detection_confidence, 
-                        model_complexity=model_complexity)
-    frame_num = -1
-    
-    fig = plt.figure()
-    
     try:
-        while cap.isOpened():
+        with mp_pose.Pose(
+            static_image_mode=static_image_mode,
+                        min_detection_confidence=min_detection_confidence, 
+                        model_complexity=model_complexity
+        ) as pose:
+            while cap.isOpened():
 
-            success, image = cap.read()
-            frame_num += 1
-            if not success or max_frame_num < frame_num :
-                break
+                success, cap_image = cap.read()
+                frame_num += 1
+                if not success or max_frame_num < frame_num :
+                    break
 
-            image, glm_list, visibility_list, hip2d_left, hip2d_right = detect_pose_to_glm_pose(mp_pose, mp_drawing, image, pose_video, mp_idx_mm_idx_map)
-            if glm_list[0] != None:
-                bones_json = {
-                   "time": frame_num,
-                   "bones": []
-                } 
-                mixamo_bindingpose_root_node.normalize(glm_list, mm_name_idx_map)
-                mixamo_bindingpose_root_node.calc_animation(glm_list, mm_name_idx_map)
-                mixamo_bindingpose_root_node.tmp_to_json(bones_json, visibility_list, mm_name_idx_map, min_visibility)
-                anim_result_json["frames"].append(bones_json)
-                if is_show_result:
-                    rg = []
-                    rv = []
-                    mixamo_bindingpose_root_node.get_vec_and_group_list(rv, rg, is_apply_tmp_transform= True)
-                    cv2.imshow("result", glm_list_to_image(fig, rv, rg))
-                if is_hips_move:
-                    hip2d_left.x *=  width
-                    hip2d_left.y *=  height
-                    hip2d_left.z *=  width
-                    hip2d_right.x *= width
-                    hip2d_right.y *= height
-                    hip2d_right.z *= width
-                    if origin == None:
-                       origin = avg_vec3(hip2d_left, hip2d_right)
-                       hips2d_scale = glm.distance(hip2d_left, hip2d_right)
-                       factor = model_scale/hips2d_scale
-                    else:
-                        hips_bone_json = find_bones(anim_result_json["frames"][-1]["bones"], Mixamo.Hips.name)
-                        if hips_bone_json != None:
-                            set_hips_position(hips_bone_json["position"], origin, avg_vec3(hip2d_left, hip2d_right),  factor)
+                cap_image, glm_list, visibility_list, hip2d_left, hip2d_right = detect_pose_to_glm_pose(mp_pose, mp_drawing, cap_image, pose, mp_idx_mm_idx_map)
+                if glm_list[0] != None:
+                    bones_json = {
+                       "time": frame_num,
+                       "bones": []
+                    } 
+                    mixamo_bindingpose_root_node.normalize(glm_list, mm_name_idx_map)
+                    mixamo_bindingpose_root_node.calc_animation(glm_list, mm_name_idx_map)
+                    mixamo_bindingpose_root_node.tmp_to_json(bones_json, visibility_list, mm_name_idx_map, min_visibility)
+                    anim_result_json["frames"].append(bones_json)
+                    if is_show_result:
+                        rg = []
+                        rv = []
+                        mixamo_bindingpose_root_node.get_vec_and_group_list(rv, rg, is_apply_tmp_transform= True)
+                        plt.clf()
+                        draw_list2(fig, rv, rg)
+                    if is_hips_move:
+                        hip2d_left.x *=  width
+                        hip2d_left.y *=  height
+                        hip2d_left.z *=  width
+                        hip2d_right.x *= width
+                        hip2d_right.y *= height
+                        hip2d_right.z *= width
+                        if origin == None:
+                           origin = avg_vec3(hip2d_left, hip2d_right)
+                           hips2d_scale = glm.distance(hip2d_left, hip2d_right)
+                           factor = model_scale/hips2d_scale
+                        else:
+                            hips_bone_json = find_bones(anim_result_json["frames"][-1]["bones"], Mixamo.Hips.name)
+                            if hips_bone_json != None:
+                                set_hips_position(hips_bone_json["position"], origin, avg_vec3(hip2d_left, hip2d_right),  factor)
 
-            cv2.imshow('MediaPipe pose', image)
+                cv2.imshow('MediaPipe pose', cap_image)
 
-            if cv2.waitKey(5) & 0xFF == 27:
-                break
+                if cv2.waitKey(5) & 0xFF == 27:
+                    break
         cap.release()
-        plt.close()
+        # plt.close(fig)
+        cv2.destroyAllWindows()    
+
     except Exception as e:
         print(e)
-        plt.close()
+        # plt.close(fig)
         if cap.isOpened():
             cap.release()
-                
+            cv2.destroyAllWindows()
         
 
 def detect_pose_to_glm_pose(mp_pose, mp_drawing, image, pose, mp_idx_mm_idx_map):

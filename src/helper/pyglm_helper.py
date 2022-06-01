@@ -46,6 +46,14 @@ def draw_list(vec_list=[], group_lists=[[]], azim=10, range=1.0):
         ax1.plot(dot['x'], dot['y'], dot['z'], marker='o')
 
     plt.show()
+def draw_list2(fig, vec_list=[], group_lists=[[]], azim=10, range=1.0):
+    ax1 = plt.axes(projection='3d')
+    set_axes(ax1, elev=10, azim=azim, xrange=range, yrange=range, zrange=range)
+    dots = get_dot(vec_list, group_lists)
+    for dot in dots:
+        ax1.plot(dot['x'], dot['y'], dot['z'], marker='o')
+    
+    fig.canvas.draw()
 
 def glm_list_to_image(fig, vec_list=[], group_lists=[[]], azim=10, range=1.0):
     

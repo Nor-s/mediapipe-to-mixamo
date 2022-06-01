@@ -1,13 +1,14 @@
 # To add a new cell, type '# %%'
 # To add a new markdown cell, type '# %% [markdown]'
 # %%
-from multiprocessing import freeze_support
+# from multiprocessing import freeze_support
 import json
 from helper.mediapipe_to_mixamo import mediapipe_to_mixamo
 from PyQt5.QtWidgets import QApplication, QMainWindow,  QFileDialog
 import sys
 from pyqt_gui.text_code1 import Ui_Dialog
 import argparse
+
 
 # %%
 class WindowClass(QMainWindow, Ui_Dialog):
@@ -75,6 +76,7 @@ class WindowClass(QMainWindow, Ui_Dialog):
             return
         
         try:
+
             self.is_converting = True
             model_path = self.cmb_model.currentText()
             gif_path = self.cmb_gif.currentText()
@@ -99,6 +101,7 @@ class WindowClass(QMainWindow, Ui_Dialog):
                 json.dump(anim_json, f, indent=2)
             self.statusBar().showMessage('Success!')
             self.is_converting = False
+
         except Exception as e:
             print(e)
             self.statusBar().showMessage('Error! ' + str(e))
@@ -123,7 +126,7 @@ class WindowClass(QMainWindow, Ui_Dialog):
         return fname[0]
 
 if __name__ == '__main__':
-    freeze_support()
+    #freeze_support()
 
     parser = argparse.ArgumentParser(description='Mediapipe To Mixamo')
     parser.add_argument(
