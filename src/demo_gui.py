@@ -126,8 +126,6 @@ class WindowClass(QMainWindow, Ui_Dialog):
         return fname[0]
 
 if __name__ == '__main__':
-    #freeze_support()
-
     parser = argparse.ArgumentParser(description='Mediapipe To Mixamo')
     parser.add_argument(
         '--arg1', help='model binding pose json data (pixel3d: Export model)', default=None)
