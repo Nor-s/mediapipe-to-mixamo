@@ -6,6 +6,7 @@ import math
 import matplotlib.pyplot as plt
 from enum import auto, IntEnum
 import copy
+import os
 
 class Mixamo(IntEnum):
     Hips = 0
@@ -491,7 +492,7 @@ def mediapipe_to_mixamo(mixamo_bindingpose_path,
     fps = cap.get(cv2.CAP_PROP_FPS)
 
     anim_result_json = {
-        "fileName": video_path,
+        "fileName": os.path.basename(video_path),
         "duration": 0,
         "width":  cap.get(cv2.CAP_PROP_FRAME_WIDTH),
         "height": cap.get(cv2.CAP_PROP_FRAME_HEIGHT), 

@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow,  QFileDialog
 import sys
 from pyqt_gui.text_code1 import Ui_Dialog
 import argparse
+import os
 
 
 # %%
@@ -115,7 +116,7 @@ class WindowClass(QMainWindow, Ui_Dialog):
     def add_cmb_item_from_dialog(self, title, path, filter, cmb, is_save=False):
         fname = self.show_dialog(title, path, filter, is_save)
         if fname != '':
-            self.add_cmb_item(fname, cmb)
+            self.add_cmb_item(os.path.abspath(fname), cmb)
 
     # filter: "Images (*.png *.xpm .jpg);;Text files (.txt);;XML files (*.xml)"
     def show_dialog(self, title, path, filter, is_save=False):
@@ -132,8 +133,8 @@ if __name__ == '__main__':
     parser.add_argument('--arg2', help='output path', default=None)
 
     args = parser.parse_args()
-    model_path = args.arg1
-    output_path = args.arg2
+    model_path = os.path.abspath(args.arg1)
+    output_path = os.path.abspath(args.arg2)
 
     app = QApplication(sys.argv)
     myWindow = WindowClass()
