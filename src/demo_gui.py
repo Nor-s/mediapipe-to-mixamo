@@ -9,7 +9,7 @@ import sys
 from pyqt_gui.text_code1 import Ui_Dialog
 import argparse
 import os
-
+import traceback
 
 # %%
 class WindowClass(QMainWindow, Ui_Dialog):
@@ -98,12 +98,27 @@ class WindowClass(QMainWindow, Ui_Dialog):
                                 model_complexity = model_complexity,
                                 is_show_result=is_show_result,
                                 min_detection_confidence=min_detection_confidence)
-            with open(output_path, 'w') as f:
-                json.dump(anim_json, f, indent=2)
+            if _ == False:
+                print("mediapipe_to_mixamo: False")
+                
+            try:
+                print("=-==================================")
+                print(anim_json)
+                print("=-==================================")
+
+                with open(output_path, 'w') as f:
+                    json.dump(anim_json, f, indent=2)
+            except Exception as e:
+                self.statusBar().showMessage('Error!')
+                print(traceback.format_exc())
+                print(e)
+            print(traceback.format_exc())
+
             self.statusBar().showMessage('Success!')
             self.is_converting = False
 
         except Exception as e:
+            print(traceback.format_exc())
             print(e)
             self.statusBar().showMessage('Error! ' + str(e))
             self.is_converting = False

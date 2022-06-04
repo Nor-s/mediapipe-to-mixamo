@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from enum import auto, IntEnum
 import copy
 import os
+import traceback
 
 class Mixamo(IntEnum):
     Hips = 0
@@ -520,6 +521,7 @@ def mediapipe_to_mixamo(mixamo_bindingpose_path,
         anim_result_json["duration"]= anim_result_json["frames"][-1]["time"]
 
     except Exception as e:
+        print(traceback.format_exc())
         print(e)
         if cap.isOpened():
             cap.release()
