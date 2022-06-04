@@ -133,14 +133,14 @@ if __name__ == '__main__':
     parser.add_argument('--arg2', help='output path', default=None)
 
     args = parser.parse_args()
-    model_path = os.path.abspath(args.arg1)
-    output_path = os.path.abspath(args.arg2)
+    model_path = args.arg1
+    output_path = args.arg2
 
     app = QApplication(sys.argv)
     myWindow = WindowClass()
     if(model_path != None):
-        myWindow.add_cmb_item(model_path, myWindow.cmb_model)
+        myWindow.add_cmb_item(os.path.abspath(model_path), myWindow.cmb_model)
     if(output_path != None):
-        myWindow.add_cmb_item(output_path, myWindow.cmb_output)
+        myWindow.add_cmb_item(os.path.abspath(output_path), myWindow.cmb_output)
     myWindow.show()
     app.exec_()
