@@ -509,7 +509,6 @@ def mediapipe_to_mixamo(mp_manager,
         anim_result_json["duration"]= anim_result_json["frames"][-1]["time"]
 
     except Exception as e:
-        print(e)
         if cap.isOpened():
             cap.release()
         return [False, None]
@@ -634,8 +633,7 @@ def mediapipe_to_mixamo2(mp_manager,
         cv2.destroyAllWindows()    
 
     except Exception as e:
-        print(e)
-        # plt.close(fig)
+         # plt.close(fig)
         if cap.isOpened():
             cap.release()
             cv2.destroyAllWindows()

@@ -3,13 +3,12 @@
 # %%
 # from multiprocessing import freeze_support
 import json
-from helper.mediapipe_to_mixamo import mediapipe_to_mixamo
+from helper.mediapipe_to_mixamo import mediapipe_to_mixamo, MediapipeManager
 from PyQt5.QtWidgets import QApplication, QMainWindow,  QFileDialog
 import sys
 from pyqt_gui.text_code1 import Ui_Dialog
 import argparse
 import os
-import traceback
 
 # %%
 class WindowClass(QMainWindow, Ui_Dialog):
@@ -37,6 +36,7 @@ class WindowClass(QMainWindow, Ui_Dialog):
             self.set_lbl_max_frame_num)
         self.h_slider_min_detection_confidence.valueChanged.connect(
             self.set_lbl_min_detection_confidence)
+        self.mp_manager = MediapipeManager()
 
     def set_lbl_min_visibility(self):
         self.lbl_slider_min_visibility.setText(
@@ -67,6 +67,15 @@ class WindowClass(QMainWindow, Ui_Dialog):
     def add_output_path(self):
         self.add_cmb_item_from_dialog(
             "Select Output File", "./", "Json (*.json)", self.cmb_output, is_save=True)
+        
+    def set_mp_manager(self):
+            self.mp_manager.set_key(min_detection_confidence= self.h_slider_min_detection_confidence.value()/100.0,
+                                    model_complexity= self.h_slider_model_complexity.value())
+
+            self.mp_manager.min_visibility = self.h_slider_min_visibility.value()/100.0
+            self.mp_manager.max_frame_num = self.h_slider_max_frame_num.value()
+            self.mp_manager.is_hips_move = self.chk_is_move.isChecked()
+            self.mp_manager.is_show_result = self.chk_is_show_result.isChecked()
 
     def convert(self):
         if self.is_converting:
@@ -77,49 +86,28 @@ class WindowClass(QMainWindow, Ui_Dialog):
             return
         
         try:
-
             self.is_converting = True
+            self.set_mp_manager()
             model_path = self.cmb_model.currentText()
             gif_path = self.cmb_gif.currentText()
             output_path = self.cmb_output.currentText()
-            max_frame_num = self.h_slider_max_frame_num.value()
-            model_complexity = self.h_slider_model_complexity.value()
-            min_visibility = self.h_slider_min_visibility.value()/100.0
-            max_frame_num = self.h_slider_max_frame_num.value()
-            min_detection_confidence = self.h_slider_min_detection_confidence.value()/100.0
-            is_move_hips = self.chk_is_move.isChecked()
-            is_show_result = self.chk_is_show_result.isChecked()
 
-            _, anim_json = mediapipe_to_mixamo(model_path, 
-                                gif_path, 
-                                is_move_hips, 
-                                min_visibility= min_visibility, 
-                                max_frame_num= max_frame_num,
-                                model_complexity = model_complexity,
-                                is_show_result=is_show_result,
-                                min_detection_confidence=min_detection_confidence)
+            _, anim_json = mediapipe_to_mixamo(
+                                self.mp_manager,
+                                model_path, 
+                                gif_path,) 
             if _ == False:
-                print("mediapipe_to_mixamo: False")
-                
-            try:
-                print("=-==================================")
-                print(anim_json)
-                print("=-==================================")
+                self.statusBar().showMessage("mediapipe_to_mixamo: False")
+                self.is_converting = False
+                return
 
-                with open(output_path, 'w') as f:
-                    json.dump(anim_json, f, indent=2)
-            except Exception as e:
-                self.statusBar().showMessage('Error!')
-                print(traceback.format_exc())
-                print(e)
-            print(traceback.format_exc())
+            with open(output_path, 'w') as f:
+                json.dump(anim_json, f, indent=2)
 
             self.statusBar().showMessage('Success!')
             self.is_converting = False
 
         except Exception as e:
-            print(traceback.format_exc())
-            print(e)
             self.statusBar().showMessage('Error! ' + str(e))
             self.is_converting = False
             return
@@ -140,6 +128,7 @@ class WindowClass(QMainWindow, Ui_Dialog):
         else:
             fname = QFileDialog.getSaveFileName(self, title, path, filter)
         return fname[0]
+            
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Mediapipe To Mixamo')
