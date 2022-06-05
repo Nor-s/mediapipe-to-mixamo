@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 from enum import auto, IntEnum
 import copy
 import os
-import traceback
 
 class Mixamo(IntEnum):
     Hips = 0
@@ -472,15 +471,10 @@ class ModelNode:
 ##################################################################################################################################################################################
 ##################################################################################################################################################################################
 ##################################################################################################################################################################################
-def mediapipe_to_mixamo(mixamo_bindingpose_path, 
-                        video_path, 
-                        is_hips_move = False, 
-                        min_visibility = 0.5, 
-                        min_detection_confidence = 0.5, 
-                        model_complexity = 1, 
-                        static_image_mode = False, 
-                        max_frame_num = 5000,
-                        is_show_result = False):
+
+def mediapipe_to_mixamo(mp_manager,
+                        mixamo_bindingpose_path, 
+                        video_path):
     mm_name_idx_map  = get_mixamo_name_idx_map()
     mixamo_json = None
     with open(mixamo_bindingpose_path) as f:
@@ -507,21 +501,14 @@ def mediapipe_to_mixamo(mixamo_bindingpose_path,
         root_node.set_mixamo(hip_node, mm_name_idx_map)
         root_node.normalize_spine()
 
-        mediapipe_to_mixamo2(anim_result_json, 
+        mediapipe_to_mixamo2(   mp_manager, 
+                                anim_result_json, 
                                 cap, 
                                 mixamo_json,
-                                root_node, 
-                                is_hips_move=is_hips_move, 
-                                min_visibility=min_visibility, 
-                                min_detection_confidence=min_detection_confidence, 
-                                model_complexity=model_complexity, 
-                                static_image_mode=static_image_mode, 
-                                max_frame_num=max_frame_num,
-                                is_show_result= is_show_result)
+                                root_node)
         anim_result_json["duration"]= anim_result_json["frames"][-1]["time"]
 
     except Exception as e:
-        print(traceback.format_exc())
         print(e)
         if cap.isOpened():
             cap.release()
@@ -531,17 +518,39 @@ def mediapipe_to_mixamo(mixamo_bindingpose_path,
     return [True, anim_result_json]
 
 
-def mediapipe_to_mixamo2(anim_result_json, 
+class MediapipeManager():
+    def __init__(self):
+        self.mp_pose =  mp.solutions.pose
+        self.mp_drawing = mp.solutions.drawing_utils 
+        self.mp_drawing_styles = mp.solutions.drawing_styles
+        self.pose_dict = dict()
+        self.key = ""
+        self.set_key()
+        self.is_hips_move = False
+        self.min_visibility = 0.5
+        self.max_frame_num = 5000
+        self.is_show_result = False
+    
+    def set_key(self, model_complexity = 1, static_image_mode = False, min_detection_confidence = 0.5):
+        self.key =  str(model_complexity) +' '+ str(min_detection_confidence)+' ' + str(static_image_mode)
+
+    
+    def get_pose(self):
+        if self.key not in self.pose_dict:
+            items = self.key.split()
+            self.pose_dict[self.key] = self.mp_pose.Pose(
+                        static_image_mode= bool(items[2]),
+                        min_detection_confidence=float(items[1]), 
+                        model_complexity=int(items[0])
+                       )
+        return self.pose_dict[self.key]
+        
+
+def mediapipe_to_mixamo2(mp_manager,
+                         anim_result_json, 
                          cap, 
                          mixamo_bindingpose_json, 
-                         mixamo_bindingpose_root_node, 
-                         is_hips_move = False, 
-                         min_visibility = 0.5, 
-                         min_detection_confidence = 0.5, 
-                         model_complexity = 1,
-                         static_image_mode = False, 
-                         max_frame_num = 5000,
-                         is_show_result = False):
+                         mixamo_bindingpose_root_node):
     # init dicts
     mp_name_idx_map = get_name_idx_map()
     mm_mp_map = get_mixamo_name_mediapipe_name_map()
@@ -567,27 +576,24 @@ def mediapipe_to_mixamo2(anim_result_json,
     plt.ion()
     plt.close()
     fig = None
-    if is_show_result: 
+    if mp_manager.is_show_result: 
         fig = plt.figure()
         plt.show()
     
     # init mediapipe
-    mp_pose = mp.solutions.pose
-    mp_drawing = mp.solutions.drawing_utils 
     try:
-        with mp_pose.Pose(
-            static_image_mode=static_image_mode,
-                        min_detection_confidence=min_detection_confidence, 
-                        model_complexity=model_complexity
-        ) as pose:
-            while cap.isOpened():
+        max_frame_num = mp_manager.max_frame_num
+        is_show_result = mp_manager.is_show_result 
+        min_visibility = mp_manager.min_visibility
+        is_hips_move    = mp_manager.is_hips_move
+        while cap.isOpened():
 
                 success, cap_image = cap.read()
                 frame_num += 1
                 if not success or max_frame_num < frame_num :
                     break
 
-                cap_image, glm_list, visibility_list, hip2d_left, hip2d_right = detect_pose_to_glm_pose(mp_pose, mp_drawing, cap_image, pose, mp_idx_mm_idx_map)
+                cap_image, glm_list, visibility_list, hip2d_left, hip2d_right = detect_pose_to_glm_pose(mp_manager, cap_image, mp_idx_mm_idx_map)
                 if glm_list[0] != None:
                     bones_json = {
                        "time": frame_num,
@@ -635,7 +641,7 @@ def mediapipe_to_mixamo2(anim_result_json,
             cv2.destroyAllWindows()
         
 
-def detect_pose_to_glm_pose(mp_pose, mp_drawing, image, pose, mp_idx_mm_idx_map):
+def detect_pose_to_glm_pose(mp_manager, image, mp_idx_mm_idx_map):
     # Create a copy of the input image.
     output_image = image.copy()
     
@@ -645,7 +651,7 @@ def detect_pose_to_glm_pose(mp_pose, mp_drawing, image, pose, mp_idx_mm_idx_map)
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     # Perform the Pose Detection.
-    results = pose.process(image_rgb)
+    results = mp_manager.get_pose().process(image_rgb)
     
     image.flags.writeable = True
 
@@ -657,18 +663,18 @@ def detect_pose_to_glm_pose(mp_pose, mp_drawing, image, pose, mp_idx_mm_idx_map)
     if results.pose_world_landmarks:
         landmark = results.pose_world_landmarks.landmark
 
-        glm_list[Mixamo.Hips] = avg_vec3(landmark[mp_pose.PoseLandmark.LEFT_HIP], landmark[mp_pose.PoseLandmark.RIGHT_HIP])
-        visibility_list[Mixamo.Hips] = (landmark[mp_pose.PoseLandmark.LEFT_HIP].visibility +  landmark[mp_pose.PoseLandmark.RIGHT_HIP].visibility)*0.5
-        glm_list[Mixamo.Neck]  = avg_vec3(landmark[mp_pose.PoseLandmark.LEFT_SHOULDER], landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER])
-        visibility_list[Mixamo.Neck] = (landmark[mp_pose.PoseLandmark.LEFT_SHOULDER].visibility +  landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].visibility)*0.5
+        glm_list[Mixamo.Hips] = avg_vec3(landmark[mp_manager.mp_pose.PoseLandmark.LEFT_HIP], landmark[mp_manager.mp_pose.PoseLandmark.RIGHT_HIP])
+        visibility_list[Mixamo.Hips] = (landmark[mp_manager.mp_pose.PoseLandmark.LEFT_HIP].visibility +  landmark[mp_manager.mp_pose.PoseLandmark.RIGHT_HIP].visibility)*0.5
+        glm_list[Mixamo.Neck]  = avg_vec3(landmark[mp_manager.mp_pose.PoseLandmark.LEFT_SHOULDER], landmark[mp_manager.mp_pose.PoseLandmark.RIGHT_SHOULDER])
+        visibility_list[Mixamo.Neck] = (landmark[mp_manager.mp_pose.PoseLandmark.LEFT_SHOULDER].visibility +  landmark[mp_manager.mp_pose.PoseLandmark.RIGHT_SHOULDER].visibility)*0.5
         glm_list[Mixamo.Spine1] = avg_vec3(glm_list[Mixamo.Hips], glm_list[Mixamo.Neck])
         visibility_list[Mixamo.Spine1] = (visibility_list[Mixamo.Hips] + visibility_list[Mixamo.Neck])*0.5
         glm_list[Mixamo.Spine] = avg_vec3(glm_list[Mixamo.Hips], glm_list[Mixamo.Spine1])
         visibility_list[Mixamo.Spine] = (visibility_list[Mixamo.Hips] + visibility_list[Mixamo.Spine1])*0.5
         glm_list[Mixamo.Spine2] = avg_vec3(glm_list[Mixamo.Spine1], glm_list[Mixamo.Neck])
         visibility_list[Mixamo.Spine2] = (visibility_list[Mixamo.Spine1] + visibility_list[Mixamo.Neck])*0.5
-        glm_list[Mixamo.Head]  = avg_vec3(landmark[mp_pose.PoseLandmark.LEFT_EAR], landmark[mp_pose.PoseLandmark.RIGHT_EAR])
-        visibility_list[Mixamo.Head] = (landmark[mp_pose.PoseLandmark.LEFT_EAR].visibility +  landmark[mp_pose.PoseLandmark.RIGHT_EAR].visibility)*0.5
+        glm_list[Mixamo.Head]  = avg_vec3(landmark[mp_manager.mp_pose.PoseLandmark.LEFT_EAR], landmark[mp_manager.mp_pose.PoseLandmark.RIGHT_EAR])
+        visibility_list[Mixamo.Head] = (landmark[mp_manager.mp_pose.PoseLandmark.LEFT_EAR].visibility +  landmark[mp_manager.mp_pose.PoseLandmark.RIGHT_EAR].visibility)*0.5
         glm_list[Mixamo.Neck].y *= -1
         glm_list[Mixamo.Neck].z *= -1
         glm_list[Mixamo.Spine].y *= -1
@@ -684,19 +690,16 @@ def detect_pose_to_glm_pose(mp_pose, mp_drawing, image, pose, mp_idx_mm_idx_map)
             glm_list[mm_idx] = glm.vec3(landmark[mp_idx].x, -landmark[mp_idx].y, -landmark[mp_idx].z)
             visibility_list[mm_idx] = landmark[mp_idx].visibility
 
-
-    image_height, image_width, _ = image.shape
-
     # calculate hips2d
     if results.pose_landmarks:
         landmark = results.pose_landmarks.landmark
-        hip2d_left.x = landmark[mp_pose.PoseLandmark.LEFT_HIP].x
-        hip2d_left.y = landmark[mp_pose.PoseLandmark.LEFT_HIP].y
-        hip2d_left.z = landmark[mp_pose.PoseLandmark.LEFT_HIP].z
-        hip2d_right = glm.vec3(landmark[mp_pose.PoseLandmark.RIGHT_HIP].x,landmark[mp_pose.PoseLandmark.RIGHT_HIP].y,landmark[mp_pose.PoseLandmark.RIGHT_HIP].z)
+        hip2d_left.x = landmark[mp_manager.mp_pose.PoseLandmark.LEFT_HIP].x
+        hip2d_left.y = landmark[mp_manager.mp_pose.PoseLandmark.LEFT_HIP].y
+        hip2d_left.z = landmark[mp_manager.mp_pose.PoseLandmark.LEFT_HIP].z
+        hip2d_right = glm.vec3(landmark[mp_manager.mp_pose.PoseLandmark.RIGHT_HIP].x,landmark[mp_manager.mp_pose.PoseLandmark.RIGHT_HIP].y,landmark[mp_manager.mp_pose.PoseLandmark.RIGHT_HIP].z)
 
-    mp_drawing.draw_landmarks(image=output_image, landmark_list=results.pose_landmarks,
-                              connections=mp_pose.POSE_CONNECTIONS)
+    mp_manager.mp_drawing.draw_landmarks(image=output_image, landmark_list=results.pose_landmarks,
+                              connections=mp_manager.mp_pose.POSE_CONNECTIONS, landmark_drawing_spec = mp_manager.mp_drawing_styles.get_default_pose_landmarks_style())
 
     return output_image, glm_list, visibility_list, hip2d_left, hip2d_right
 
