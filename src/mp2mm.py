@@ -14,6 +14,7 @@ import os
 class WindowClass(QMainWindow, Ui_Dialog):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("MP2MM")
         self.setupUi(self)
         self.statusBar().showMessage('Ready')
 

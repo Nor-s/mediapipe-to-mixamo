@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Mediapipe Pose</string>
+   <string>MP2MM</string>
   </property>
   <widget class="QFrame" name="frame">
    <property name="geometry">
@@ -65,7 +65,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <property name="usesScrollButtons">
        <bool>false</bool>
@@ -96,7 +96,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Animation GIF</string>
+            <string>Video</string>
            </property>
           </widget>
          </item>
@@ -148,7 +148,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Add Gif</string>
+            <string>Add Video</string>
            </property>
           </widget>
          </item>

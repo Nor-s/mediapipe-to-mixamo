@@ -242,16 +242,16 @@ class Ui_Dialog(object):
         self.verticalLayout.addWidget(self.btn_convert)
 
         self.retranslateUi(Dialog)
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Mediapipe Pose"))
-        self.lbl_display2.setText(_translate("Dialog", "Animation GIF"))
+        Dialog.setWindowTitle(_translate("Dialog", "MP2MM"))
+        self.lbl_display2.setText(_translate("Dialog", "Video"))
         self.lbl_display.setText(_translate("Dialog", "Model Json"))
         self.btn_add_model.setText(_translate("Dialog", "Add Model"))
-        self.btn_add_gif.setText(_translate("Dialog", "Add Gif"))
+        self.btn_add_gif.setText(_translate("Dialog", "Add Video"))
         self.btn_add_output.setText(_translate("Dialog", "Add Output"))
         self.lbl_slider_min_visibility.setText(_translate("Dialog", "70"))
         self.label_3.setText(_translate("Dialog", "Maximum Frame"))
