@@ -532,9 +532,6 @@ class MediapipeManager():
     
     def set_key(self, model_complexity = 1, static_image_mode = False, min_detection_confidence = 0.5):
         self.key =  str(model_complexity) +' '+ str(min_detection_confidence)+' ' + str(static_image_mode)
-
-    
-    def get_pose(self):
         if self.key not in self.pose_dict:
             items = self.key.split()
             self.pose_dict[self.key] = self.mp_pose.Pose(
@@ -542,6 +539,8 @@ class MediapipeManager():
                         min_detection_confidence=float(items[1]), 
                         model_complexity=int(items[0])
                        )
+    
+    def get_pose(self):
         return self.pose_dict[self.key]
         
 
@@ -591,7 +590,11 @@ def mediapipe_to_mixamo2(mp_manager,
                 frame_num += 1
                 if not success or max_frame_num < frame_num :
                     break
-
+                height1, width1, _ = cap_image.shape
+                cap_image = cv2.resize(cap_image, (int(width1 * (640 / height1)), 640))
+                height2, width2, _ = cap_image.shape
+                height = height2
+                width = width2
                 cap_image, glm_list, visibility_list, hip2d_left, hip2d_right = detect_pose_to_glm_pose(mp_manager, cap_image, mp_idx_mm_idx_map)
                 if glm_list[0] != None:
                     bones_json = {
