@@ -534,8 +534,9 @@ class MediapipeManager():
         self.key =  str(model_complexity) +' '+ str(min_detection_confidence)+' ' + str(static_image_mode)
         if self.key not in self.pose_dict:
             items = self.key.split()
+
             self.pose_dict[self.key] = self.mp_pose.Pose(
-                        static_image_mode= bool(items[2]),
+                        static_image_mode= (items[2] == "True"),
                         min_detection_confidence=float(items[1]), 
                         model_complexity=int(items[0])
                        )
