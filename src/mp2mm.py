@@ -92,7 +92,8 @@ class WindowClass(QMainWindow, Ui_Dialog):
             model_path = self.cmb_model.currentText()
             gif_path = self.cmb_gif.currentText()
             output_path = self.cmb_output.currentText()
-
+            if gif_path == "youtube URL":
+                gif_path = self.line_link.text()
             _, anim_json = mediapipe_to_mixamo(
                                 self.mp_manager,
                                 model_path, 
@@ -147,5 +148,6 @@ if __name__ == '__main__':
         myWindow.add_cmb_item(os.path.abspath(model_path), myWindow.cmb_model)
     if(output_path != None):
         myWindow.add_cmb_item(os.path.abspath(output_path), myWindow.cmb_output)
+    myWindow.add_cmb_item("youtube URL", myWindow.cmb_gif)
     myWindow.show()
     app.exec_()

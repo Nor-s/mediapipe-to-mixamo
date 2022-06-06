@@ -89,7 +89,7 @@ def find_pixel3d_json(pixel3d_json, name):
         return [True, pixel3d_json]
     else:
         for child in pixel3d_json["child"]:
-            is_find, result = find_hips(child)
+            is_find, result = find_pixel3d_json(child, name)
             if is_find:
                 return [is_find, result]
         return [False, None]
@@ -471,6 +471,7 @@ class ModelNode:
 ##################################################################################################################################################################################
 ##################################################################################################################################################################################
 ##################################################################################################################################################################################
+import pafy
 
 def mediapipe_to_mixamo(mp_manager,
                         mixamo_bindingpose_path, 
@@ -483,6 +484,11 @@ def mediapipe_to_mixamo(mp_manager,
     if not is_find:
         return [False, None]
     
+    if video_path[:4] == "http":
+        video = pafy.new(video_path)
+        best = video.getbest(preftype="any")
+        video_path = best.url
+        
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
 
@@ -563,9 +569,13 @@ def mediapipe_to_mixamo2(mp_manager,
     
     # for hips move var
     _, model_right_up_leg = find_pixel3d_json(mixamo_bindingpose_json["node"], Mixamo.RightUpLeg.name)
+    _, model_hips = find_pixel3d_json(mixamo_bindingpose_json["node"], Mixamo.Hips.name)
     model_scale = 100
+    print(model_right_up_leg["position"])
+
     if _ != False:
-        model_scale = get_3d_len(model_right_up_leg["position"])
+        print(model_right_up_leg["position"])
+        model_scale = get_3d_len(model_right_up_leg["position"])*2.0
     origin = None
     factor = 1.0
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -629,8 +639,8 @@ def mediapipe_to_mixamo2(mp_manager,
                                 set_hips_position(hips_bone_json["position"], origin, avg_vec3(hip2d_left, hip2d_right),  factor)
 
                 cv2.imshow('MediaPipe pose', cap_image)
-
-                if cv2.waitKey(5) & 0xFF == 27:
+                key = cv2.waitKey(5) 
+                if key & 0xFF == 27 or cv2.getWindowProperty('MediaPipe pose', cv2.WND_PROP_VISIBLE) <1:
                     break
         cap.release()
         # plt.close(fig)
