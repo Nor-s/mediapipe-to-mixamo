@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from enum import auto, IntEnum
 import copy
 import os
-
+import pafy
 class Mixamo(IntEnum):
     Hips = 0
     Spine = auto()
@@ -399,16 +399,14 @@ class ModelNode:
             target_node = self.child[0]
             target_gizmo = target_node.get_gizmo(
                 parent_transform*self.get_transform())
-            target_vec = world_mixamo_adjust + \
-                mixamo_list[mixamo_idx_map[target_node.name]]
+            target_vec = world_mixamo_adjust + mixamo_list[mixamo_idx_map[target_node.name]]
             self.tmp_transform = current_gizmo.calc_rotation_matrix(
                 target_gizmo.get_origin(), target_vec)
 
         for child in self.child:
-            adjust_vec = child.get_gizmo(
+            adjust_vec1 = child.get_gizmo(
                 parent_transform*self.get_transform()*self.tmp_transform).get_origin()
-            adjust_vec -= (world_mixamo_adjust +
-                           mixamo_list[mixamo_idx_map[child.name]])
+            adjust_vec = adjust_vec1 - mixamo_list[mixamo_idx_map[child.name]]
             child.calc_animation(mixamo_list, mixamo_idx_map,
                                  parent_transform*self.get_transform()*self.tmp_transform, world_mixamo_adjust=adjust_vec)
 
@@ -471,7 +469,6 @@ class ModelNode:
 ##################################################################################################################################################################################
 ##################################################################################################################################################################################
 ##################################################################################################################################################################################
-import pafy
 
 def mediapipe_to_mixamo(mp_manager,
                         mixamo_bindingpose_path, 
@@ -488,7 +485,7 @@ def mediapipe_to_mixamo(mp_manager,
         video = pafy.new(video_path)
         best = video.getbest(preftype="any")
         video_path = best.url
-        
+
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
 
