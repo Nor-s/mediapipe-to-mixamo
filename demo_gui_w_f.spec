@@ -8,7 +8,7 @@ def get_mediapipe_path():
     return mediapipe_path
 
 a = Analysis(
-    ['./src/mp2mm.py'],
+    ['./src/main.py'],
     pathex=[],
     binaries=[],
     datas=[],

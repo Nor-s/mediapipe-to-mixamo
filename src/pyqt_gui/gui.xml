@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>378</width>
+    <width>410</width>
     <height>387</height>
    </rect>
   </property>
@@ -24,7 +24,7 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>361</width>
+     <width>391</width>
      <height>341</height>
     </rect>
    </property>
@@ -82,7 +82,7 @@
          <rect>
           <x>0</x>
           <y>10</y>
-          <width>311</width>
+          <width>351</width>
           <height>221</height>
          </rect>
         </property>
@@ -167,7 +167,7 @@
          <rect>
           <x>0</x>
           <y>10</y>
-          <width>311</width>
+          <width>351</width>
           <height>221</height>
          </rect>
         </property>
@@ -200,7 +200,7 @@
          <rect>
           <x>20</x>
           <y>10</y>
-          <width>327</width>
+          <width>340</width>
           <height>231</height>
          </rect>
         </property>
@@ -277,11 +277,14 @@
          </item>
          <item row="4" column="1">
           <widget class="QCheckBox" name="chk_is_show_result">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <property name="text">
             <string>Show Result</string>
            </property>
            <property name="checked">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -335,7 +338,7 @@
             <number>1</number>
            </property>
            <property name="maximum">
-            <number>5000</number>
+            <number>9000</number>
            </property>
            <property name="sliderPosition">
             <number>5000</number>
@@ -396,7 +399,7 @@
             </sizepolicy>
            </property>
            <property name="sliderPosition">
-            <number>50</number>
+            <number>70</number>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -412,7 +415,14 @@
          <item row="1" column="2">
           <widget class="QLabel" name="lbl_slider_min_detection_confidence">
            <property name="text">
-            <string>50</string>
+            <string>70</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <widget class="QCheckBox" name="chk_is_left">
+           <property name="text">
+            <string>Left</string>
            </property>
           </widget>
          </item>
