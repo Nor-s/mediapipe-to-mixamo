@@ -77,10 +77,6 @@ class WindowClass(QMainWindow, Ui_Dialog):
             self.mp_manager.max_frame_num = self.h_slider_max_frame_num.value()
             self.mp_manager.is_hips_move = self.chk_is_move.isChecked()
             self.mp_manager.is_show_result = self.chk_is_show_result.isChecked()
-            if self.chk_is_left.isChecked() :
-                self.mp_manager.z_factor = 1.0
-            else:
-                self.mp_manager.z_factor = -1.0
     def convert(self):
         if self.is_converting:
             return

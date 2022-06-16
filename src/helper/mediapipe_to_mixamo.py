@@ -127,6 +127,32 @@ def get_mixamo_name_mediapipe_name_map():
     return mixamo_name_mediapipe_name_map
 
 ##################################################################################################################################################################################
+class MediapipeManager():
+    def __init__(self):
+        self.mp_pose =  mp.solutions.pose
+        self.mp_drawing = mp.solutions.drawing_utils 
+        self.mp_drawing_styles = mp.solutions.drawing_styles
+        self.pose_dict = dict()
+        self.key = ""
+        self.set_key()
+        self.is_hips_move = False
+        self.min_visibility = 0.5
+        self.max_frame_num = 5000
+        self.is_show_result = False
+    
+    def set_key(self, model_complexity = 1, static_image_mode = False, min_detection_confidence = 0.5):
+        self.key =  str(model_complexity) +' '+ str(min_detection_confidence)+' ' + str(static_image_mode)
+        if self.key not in self.pose_dict:
+            items = self.key.split()
+
+            self.pose_dict[self.key] = self.mp_pose.Pose(
+                        static_image_mode= (items[2] == "True"),
+                        min_detection_confidence=float(items[1]), 
+                        model_complexity=int(items[0])
+                       )
+    
+    def get_pose(self):
+        return self.pose_dict[self.key]
 
 def mediapipe_to_mixamo(mp_manager,
                         mixamo_bindingpose_path, 
@@ -178,33 +204,7 @@ def mediapipe_to_mixamo(mp_manager,
     return [True, anim_result_json]
 
 
-class MediapipeManager():
-    def __init__(self):
-        self.mp_pose =  mp.solutions.pose
-        self.mp_drawing = mp.solutions.drawing_utils 
-        self.mp_drawing_styles = mp.solutions.drawing_styles
-        self.pose_dict = dict()
-        self.key = ""
-        self.set_key()
-        self.is_hips_move = False
-        self.min_visibility = 0.5
-        self.max_frame_num = 5000
-        self.is_show_result = False
-        self.z_factor = 1.0
-    
-    def set_key(self, model_complexity = 1, static_image_mode = False, min_detection_confidence = 0.5):
-        self.key =  str(model_complexity) +' '+ str(min_detection_confidence)+' ' + str(static_image_mode)
-        if self.key not in self.pose_dict:
-            items = self.key.split()
 
-            self.pose_dict[self.key] = self.mp_pose.Pose(
-                        static_image_mode= (items[2] == "True"),
-                        min_detection_confidence=float(items[1]), 
-                        model_complexity=int(items[0])
-                       )
-    
-    def get_pose(self):
-        return self.pose_dict[self.key]
         
 
 def mediapipe_to_mixamo2(mp_manager,
@@ -225,7 +225,6 @@ def mediapipe_to_mixamo2(mp_manager,
     
     # for hips move var
     _, model_right_up_leg = find_pixel3d_json(mixamo_bindingpose_json["node"], Mixamo.RightUpLeg.name)
-    _, model_hips = find_pixel3d_json(mixamo_bindingpose_json["node"], Mixamo.Hips.name)
     model_scale = 100
     if _ != False:
         model_scale = get_3d_len(model_right_up_leg["position"])*2.0
@@ -347,14 +346,14 @@ def detect_pose_to_glm_pose(mp_manager, image, mp_idx_mm_idx_map):
         glm_list[Mixamo.Spine2].y *= -1
         glm_list[Mixamo.Head].y *= -1
         
-        glm_list[Mixamo.Neck].z *= 1
-        glm_list[Mixamo.Spine].z *= 1
-        glm_list[Mixamo.Spine1].z *= 1
-        glm_list[Mixamo.Spine2].z *= 1
-        glm_list[Mixamo.Head].z *= 1
+        glm_list[Mixamo.Neck].z *= -1
+        glm_list[Mixamo.Spine].z *= -1
+        glm_list[Mixamo.Spine1].z *= -1
+        glm_list[Mixamo.Spine2].z *= -1
+        glm_list[Mixamo.Head].z *= -1
         for mp_idx in mp_idx_mm_idx_map.keys():
             mm_idx = mp_idx_mm_idx_map[mp_idx]
-            glm_list[mm_idx] = glm.vec3(landmark[mp_idx].x, -landmark[mp_idx].y, landmark[mp_idx].z)
+            glm_list[mm_idx] = glm.vec3(landmark[mp_idx].x, -landmark[mp_idx].y, -landmark[mp_idx].z)
             visibility_list[mm_idx] = landmark[mp_idx].visibility
 
     # calculate hips2d
