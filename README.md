@@ -1,6 +1,15 @@
 # **MP2MM v0.0.4**
 
--   mediapipe to mixamo
+## SEE
+
+this project is deprecated
+
+- see this project: [Anim](https://github.com/Nor-s/Anim)
+    - [Anim/py_module](https://github.com/Nor-s/Anim/tree/master/py_module)
+
+
+
+## mp2mm
 
 ![](./screenshot/cap.png)
 
